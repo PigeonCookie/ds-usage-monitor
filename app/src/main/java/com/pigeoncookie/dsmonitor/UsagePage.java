@@ -954,18 +954,33 @@ public class UsagePage extends Page {
             if (effective.size() > 1) {
                 // 多选：平台逐时也要按项拆成多条系列（每项自己的当日合计用来补正在走的小时）
                 float[][] multi = new float[effective.size()][24];
+                double[] shares = new double[effective.size()];
+                double shareSum = 0;
                 boolean anyItem = false;
                 for (int i = 0; i < effective.size(); i++) {
                     java.util.List<String> one = java.util.Collections.singletonList(effective.get(i));
-                    // 每个 Key 自己的当日合计（不能用整个选区的合计，否则"正在走的小时"会被重复补齐）
-                    float[] hours = platformHours(platform, dim, one, HourlyCache.COST,
-                            data.sliceAll(dim, effective.get(i)).cost);
+                    // 已结束的小时按 Key 从平台缓存取；正在走的小时统一在下面按比例分配
+                    float[] hours = platformHours(platform, dim, one, HourlyCache.COST, 0);
                     if (hours != null) {
                         multi[i] = hours;
                         anyItem = true;
                     }
+                    shares[i] = Math.max(0, data.sliceAll(dim, effective.get(i)).cost);
+                    shareSum += shares[i];
                 }
                 if (anyItem) {
+                    // 选区合计 − 各 Key 已结束小时之和 = 正在走的小时，再按各 Key 当日合计比例拆分
+                    double finished = 0;
+                    for (int i = 0; i < multi.length; i++) {
+                        for (int h = 0; h < viewRunningHour && h < 24; h++) {
+                            finished += multi[i][h];
+                        }
+                    }
+                    double rest = Math.max(0, stat.cost - finished);
+                    for (int i = 0; i < multi.length; i++) {
+                        double share = shareSum > 0 ? shares[i] / shareSum : 1.0 / multi.length;
+                        multi[i][viewRunningHour] = (float) (rest * share);
+                    }
                     series = multi;
                     fromPlatform = true;
                 }
