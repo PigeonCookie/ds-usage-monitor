@@ -50,6 +50,9 @@ public class UsagePage extends Page {
     private static final int RANGE_30D = 2;
     private static final int RANGE_MONTH = 3;
     private static final int RANGE_CUSTOM = 4;
+    private static final int RANGE_YESTERDAY = 5;
+    /** 0 = the hourly view shows today, -1 = it shows yesterday. */
+    private int viewDayOffset;
     private static final int MAX_SERIES = 6;
     private static final int MAX_LEGEND = 4;
     private static final int MAX_DAYS = 120;
@@ -614,6 +617,8 @@ public class UsagePage extends Page {
 
     private String rangeLabel() {
         switch (range) {
+            case RANGE_YESTERDAY:
+                return "昨日";
             case RANGE_7D:
                 return host.getString(R.string.range_7d);
             case RANGE_30D:
@@ -653,6 +658,15 @@ public class UsagePage extends Page {
                 s.from = customFrom;
                 s.to = customTo;
                 break;
+            case RANGE_YESTERDAY: {
+                Calendar yesterday = Calendar.getInstance();
+                yesterday.add(Calendar.DAY_OF_MONTH, -1);
+                s.from = String.format(java.util.Locale.US, "%04d-%02d-%02d",
+                        yesterday.get(Calendar.YEAR), yesterday.get(Calendar.MONTH) + 1,
+                        yesterday.get(Calendar.DAY_OF_MONTH));
+                s.to = s.from;
+                break;
+            }
             default:
                 s.from = null;
                 s.to = null;
@@ -736,7 +750,10 @@ public class UsagePage extends Page {
                 String error = null;
                 boolean byKey = false;
                 try {
-                    if (spec.range == RANGE_TODAY) {
+                    if (spec.range == RANGE_YESTERDAY) {
+                        data = DeepSeekClient.fetchLocalDay(host, token, spec.from);
+                        byKey = true;
+                    } else if (spec.range == RANGE_TODAY) {
                         long[] window = DeepSeekClient.todayWindow();
                         data = DeepSeekClient.fetchExportRange(token, window[0], window[1]);
                         byKey = true;
@@ -818,7 +835,8 @@ public class UsagePage extends Page {
             renderEmpty(UsageRepo.error.isEmpty() ? "暂无数据，点击左上角重载" : UsageRepo.error);
             return;
         }
-        if (range == RANGE_TODAY) {
+        viewDayOffset = range == RANGE_YESTERDAY ? -1 : 0;
+        if (range == RANGE_TODAY || range == RANGE_YESTERDAY) {
             renderToday(data);
         } else {
             renderDays(data);
@@ -899,7 +917,7 @@ public class UsagePage extends Page {
         boolean perItem = !matched.isEmpty() && SampleStore.hasItemStats(host, dim);
         // 平台逐时优先（单选时每个桶就是平台该小时的窗口值，和官网同一口径）
         java.util.LinkedHashMap<Integer, HourlyCache.Hour> platform =
-                HourlyCache.usable(host) ? HourlyCache.load(host) : null;
+                viewDayOffset == 0 && HourlyCache.usable(host) ? HourlyCache.load(host) : null;
         float[][] series = null;
         boolean fromPlatform = false;
         if (platform != null) {
@@ -912,13 +930,14 @@ public class UsagePage extends Page {
         if (series == null && perItem && !effective.isEmpty()) {
             series = new float[effective.size()][24];
             for (int i = 0; i < effective.size(); i++) {
-                series[i] = toFloats(SampleStore.hourlyCost(host, dim,
-                        java.util.Collections.singletonList(effective.get(i))));
+                series[i] = toFloats(SampleStore.hourlyFor(host, viewDayOffset, dim,
+                        java.util.Collections.singletonList(effective.get(i)), SampleStore.KIND_COST));
             }
         }
         boolean fellBack = false;
         if (series == null || allZero(series)) {
-            series = new float[][]{toFloats(SampleStore.hourly(host, SampleStore.FIELD_COST))};
+            series = new float[][]{toFloats(SampleStore.hourlyFor(host, viewDayOffset, dim, null,
+                    SampleStore.KIND_COST))};
             fellBack = true;
             fromPlatform = false;
         }
@@ -941,8 +960,8 @@ public class UsagePage extends Page {
         float[] platformRequests = platform == null ? null
                 : platformHours(platform, dim, effective, HourlyCache.REQUESTS, stat.requests);
         reqValues = platformRequests != null ? platformRequests
-                : (perItem ? toFloats(SampleStore.hourlyRequests(host, dim, matched))
-                : toFloats(SampleStore.hourly(host, SampleStore.FIELD_REQUESTS)));
+                : toFloats(SampleStore.hourlyFor(host, viewDayOffset, dim, perItem ? matched : null,
+                SampleStore.KIND_REQUESTS));
 
         // 命中/未命中/输出 的比例取自当日合计（导出接口，口径与官网一致），逐时总量取自本机采样；
         // 这样即使历史采样是旧规则写入的，拆分也会立刻正确
@@ -956,16 +975,9 @@ public class UsagePage extends Page {
         float[] hourlyTokens;
         if (platformTokens != null) {
             hourlyTokens = platformTokens;
-        } else if (perItem) {
-            float[] hitHours = toFloats(SampleStore.hourlyTokens(host, dim, matched, UsageData.TOKEN_HIT));
-            float[] missHours = toFloats(SampleStore.hourlyTokens(host, dim, matched, UsageData.TOKEN_MISS));
-            float[] outHours = toFloats(SampleStore.hourlyTokens(host, dim, matched, UsageData.TOKEN_OUT));
-            hourlyTokens = new float[24];
-            for (int i = 0; i < hourlyTokens.length; i++) {
-                hourlyTokens[i] = hitHours[i] + missHours[i] + outHours[i];
-            }
         } else {
-            hourlyTokens = toFloats(SampleStore.hourly(host, SampleStore.FIELD_TOKENS));
+            hourlyTokens = toFloats(SampleStore.hourlyFor(host, viewDayOffset, dim,
+                    perItem ? matched : null, SampleStore.KIND_TOKENS));
         }
         float[][] platformSplit = platform == null ? null
                 : platformTokenSplit(platform, dim, effective, stat);
@@ -997,7 +1009,7 @@ public class UsagePage extends Page {
 
         int samples = SampleStore.today(host).size();
         StringBuilder hint = new StringBuilder();
-        hint.append("今日 ").append(Fmt.money(stat.cost)).append(" · ")
+        hint.append(range == RANGE_YESTERDAY ? "昨日 " : "今日 ").append(Fmt.money(stat.cost)).append(" · ")
                 .append(Fmt.group(stat.requests)).append(" 次请求");
         if (!selected.isEmpty()) {
             hint.append(" · 已选 ").append(selected.size()).append(" 项");
@@ -1304,15 +1316,25 @@ public class UsagePage extends Page {
     private void showRangeDialog() {
         final String[] items = new String[]{
                 host.getString(R.string.range_today),
+                "昨日",
                 host.getString(R.string.range_7d),
                 host.getString(R.string.range_30d),
                 host.getString(R.string.range_month),
                 host.getString(R.string.range_custom)};
+        final int[] ranges = new int[]{RANGE_TODAY, RANGE_YESTERDAY, RANGE_7D, RANGE_30D,
+                RANGE_MONTH, RANGE_CUSTOM};
         new AlertDialog.Builder(host)
                 .setTitle(R.string.filter_time)
                 .setItems(items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        if (which >= 0 && which < ranges.length && ranges[which] != RANGE_CUSTOM) {
+                            range = ranges[which];
+                            viewDayOffset = range == RANGE_YESTERDAY ? -1 : 0;
+                            persist();
+                            load(true);
+                            return;
+                        }
                         if (which == RANGE_CUSTOM) {
                             DateRangeDialog.show(host, customFrom, customTo,
                                     new DateRangeDialog.Listener() {

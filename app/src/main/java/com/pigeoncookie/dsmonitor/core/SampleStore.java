@@ -247,8 +247,14 @@ public final class SampleStore {
     }
 
     public static synchronized List<Sample> today(Context c) {
+        return samplesOn(c, 0);
+    }
+
+    /** Samples of one local day: {@code dayOffset} 0 = today, -1 = yesterday, … */
+    public static synchronized List<Sample> samplesOn(Context c, int dayOffset) {
         List<Sample> out = new ArrayList<>();
         Calendar now = Calendar.getInstance();
+        now.add(Calendar.DAY_OF_MONTH, dayOffset);
         for (Sample s : load(c)) {
             Calendar cal = Calendar.getInstance();
             cal.setTimeInMillis(s.t);
@@ -258,6 +264,69 @@ public final class SampleStore {
             }
         }
         return out;
+    }
+
+    /** Kinds accepted by {@link #hourlyFor}. */
+    public static final int KIND_COST = 0;
+    public static final int KIND_REQUESTS = 1;
+    public static final int KIND_TOKENS = 2;
+    public static final int KIND_HIT = 3;
+    public static final int KIND_MISS = 4;
+    public static final int KIND_OUT = 5;
+
+    /**
+     * 24 hourly buckets of one local day ({@code dayOffset} 0 = today, -1 = yesterday) for the given
+     * items and kind. Sums the selected items first, then applies the same delta spreading as today.
+     */
+    public static double[] hourlyFor(Context c, final int dayOffset, final int dimension,
+            final List<String> items, final int kind) {
+        return hourlySeries(c, dayOffset, new Value[]{new Value() {
+            @Override
+            public double get(Sample s) {
+                if (items == null || items.isEmpty()) {
+                    switch (kind) {
+                        case KIND_REQUESTS:
+                            return s.requests;
+                        case KIND_TOKENS:
+                            return s.tokens;
+                        case KIND_HIT:
+                            return s.hitTokens;
+                        case KIND_MISS:
+                            return s.missTokens;
+                        case KIND_OUT:
+                            return s.outTokens;
+                        default:
+                            return s.cost;
+                    }
+                }
+                double sum = 0;
+                for (String item : items) {
+                    switch (kind) {
+                        case KIND_REQUESTS:
+                            sum += s.itemStat(dimension, item, STAT_REQUESTS);
+                            break;
+                        case KIND_TOKENS:
+                            sum += s.itemStat(dimension, item, STAT_HIT)
+                                    + s.itemStat(dimension, item, STAT_MISS)
+                                    + s.itemStat(dimension, item, STAT_OUT);
+                            break;
+                        case KIND_HIT:
+                            sum += s.itemStat(dimension, item, STAT_HIT);
+                            break;
+                        case KIND_MISS:
+                            sum += s.itemStat(dimension, item, STAT_MISS);
+                            break;
+                        case KIND_OUT:
+                            sum += s.itemStat(dimension, item, STAT_OUT);
+                            break;
+                        default:
+                            sum += s.itemStat(dimension, item, STAT_COST);
+                            break;
+                    }
+                }
+                return sum;
+            }
+        }});
     }
 
     /** Reads one value out of a sample (used to build an hourly series). */
@@ -274,10 +343,14 @@ public final class SampleStore {
      * and leave the neighbouring ones empty.
      */
     private static double[] hourlySeries(Context c, Value[] values) {
+        return hourlySeries(c, 0, values);
+    }
+
+    private static double[] hourlySeries(Context c, int dayOffset, Value[] values) {
         double[] out = new double[24];
         double[] prev = new double[values.length];
         long prevT = 0;
-        for (Sample s : today(c)) {
+        for (Sample s : samplesOn(c, dayOffset)) {
             for (int k = 0; k < values.length; k++) {
                 double v = values[k].get(s);
                 double delta = v - prev[k];
