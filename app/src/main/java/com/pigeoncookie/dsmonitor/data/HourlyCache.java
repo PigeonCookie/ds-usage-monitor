@@ -84,12 +84,21 @@ public final class HourlyCache {
     }
 
     private static File file(Context c) {
-        return new File(c.getFilesDir(), "hourly-v" + FORMAT + "-" + day() + ".jsonl");
+        return file(c, day());
+    }
+
+    private static File file(Context c, String isoDay) {
+        return new File(c.getFilesDir(), "hourly-v" + FORMAT + "-" + isoDay + ".jsonl");
     }
 
     public static synchronized LinkedHashMap<Integer, Hour> load(Context c) {
+        return load(c, day());
+    }
+
+    /** Same, for any local day ({@code yyyy-MM-dd}). */
+    public static synchronized LinkedHashMap<Integer, Hour> load(Context c, String isoDay) {
         LinkedHashMap<Integer, Hour> out = new LinkedHashMap<>();
-        File f = file(c);
+        File f = file(c, isoDay);
         if (!f.exists()) {
             return out;
         }
@@ -154,14 +163,22 @@ public final class HourlyCache {
     }
 
     public static synchronized void put(Context c, int hour, Hour value) {
-        LinkedHashMap<Integer, Hour> all = load(c);
+        put(c, day(), hour, value);
+    }
+
+    public static synchronized void put(Context c, String isoDay, int hour, Hour value) {
+        LinkedHashMap<Integer, Hour> all = load(c, isoDay);
         value.hour = hour;
         all.put(hour, value);
-        write(c, all);
+        write(c, isoDay, all);
     }
 
     public static synchronized void clear(Context c) {
-        File f = file(c);
+        clear(c, day());
+    }
+
+    public static synchronized void clear(Context c, String isoDay) {
+        File f = file(c, isoDay);
         if (f.exists() && !f.delete()) {
             f.deleteOnExit();
         }
@@ -169,22 +186,38 @@ public final class HourlyCache {
 
     /** True when the cache holds at least one hour and was not disabled by the sanity check. */
     public static boolean usable(Context c) {
-        return !disabled(c) && !load(c).isEmpty();
+        return usable(c, day());
+    }
+
+    public static boolean usable(Context c, String isoDay) {
+        return !disabled(c, isoDay) && !load(c, isoDay).isEmpty();
     }
 
     private static File flagFile(Context c) {
-        return new File(c.getFilesDir(), "hourly-off-" + day());
+        return flagFile(c, day());
+    }
+
+    private static File flagFile(Context c, String isoDay) {
+        return new File(c.getFilesDir(), "hourly-off-" + isoDay);
     }
 
     public static boolean disabled(Context c) {
-        return flagFile(c).exists();
+        return disabled(c, day());
+    }
+
+    public static boolean disabled(Context c, String isoDay) {
+        return flagFile(c, isoDay).exists();
     }
 
     public static void disable(Context c) {
-        clear(c);
+        disable(c, day());
+    }
+
+    public static void disable(Context c, String isoDay) {
+        clear(c, isoDay);
         try {
-            if (!flagFile(c).createNewFile()) {
-                flagFile(c).setLastModified(System.currentTimeMillis());
+            if (!flagFile(c, isoDay).createNewFile()) {
+                flagFile(c, isoDay).setLastModified(System.currentTimeMillis());
             }
         } catch (Exception ignored) {
             // worst case the sanity check runs again on the next refresh
@@ -263,9 +296,13 @@ public final class HourlyCache {
     }
 
     private static void write(Context c, LinkedHashMap<Integer, Hour> all) {
+        write(c, day(), all);
+    }
+
+    private static void write(Context c, String isoDay, LinkedHashMap<Integer, Hour> all) {
         OutputStreamWriter writer = null;
         try {
-            writer = new OutputStreamWriter(new FileOutputStream(file(c)), StandardCharsets.UTF_8);
+            writer = new OutputStreamWriter(new FileOutputStream(file(c, isoDay)), StandardCharsets.UTF_8);
             writer.write(format(all));
         } catch (Exception ignored) {
             // keep whatever was on disk

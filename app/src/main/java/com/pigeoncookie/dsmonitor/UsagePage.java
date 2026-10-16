@@ -53,6 +53,10 @@ public class UsagePage extends Page {
     private static final int RANGE_YESTERDAY = 5;
     /** 0 = the hourly view shows today, -1 = it shows yesterday. */
     private int viewDayOffset;
+    /** ISO date of the day the hourly view shows (its own platform hourly cache). */
+    private String viewDayIso;
+    /** Hour that is still running (today) or 23 for a finished day. */
+    private int viewRunningHour = 23;
     private static final int MAX_SERIES = 6;
     private static final int MAX_LEGEND = 4;
     private static final int MAX_DAYS = 120;
@@ -307,9 +311,9 @@ public class UsagePage extends Page {
      * Hourly values taken from the platform cache: every finished hour is exactly the window
      * {@code [H:00, H+1:00)}, and the hour still running gets whatever the day total has left.
      */
-    private static float[] platformHours(java.util.LinkedHashMap<Integer, HourlyCache.Hour> cache,
+    private float[] platformHours(java.util.LinkedHashMap<Integer, HourlyCache.Hour> cache,
             int dimension, java.util.List<String> items, int field, double dayTotal) {
-        int currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
+        int currentHour = viewRunningHour;
         float[] out = new float[24];
         double finished = 0;
         boolean any = false;
@@ -345,10 +349,10 @@ public class UsagePage extends Page {
      * {@code [输出, 未命中, 命中]}; the hour still running takes the day total minus the finished
      * hours. Returns null when the cached hours carry no token-kind data.
      */
-    private static float[][] platformTokenSplit(
+    private float[][] platformTokenSplit(
             java.util.LinkedHashMap<Integer, HourlyCache.Hour> cache, int dimension,
             java.util.List<String> items, UsageData.Slice stat) {
-        int currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
+        int currentHour = viewRunningHour;
         float[][] out = new float[3][24];
         double[] finished = new double[3];
         boolean any = false;
@@ -753,6 +757,22 @@ public class UsagePage extends Page {
                     if (spec.range == RANGE_YESTERDAY) {
                         data = DeepSeekClient.fetchLocalDay(host, token, spec.from);
                         byKey = true;
+                        // 昨天的逐时同样按小时向平台取（24 次，一次后落盘缓存）
+                        if (TodayBackfill.needed(host, spec.from, 23)) {
+                            final String dayLabel = spec.from;
+                            TodayBackfill.fill(host, token, spec.from, 23, new TodayBackfill.Progress() {
+                                @Override
+                                public void onProgress(final int done, final int total) {
+                                    Bg.ui(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            usageHint.setText("正在补齐 " + dayLabel + " 逐时数据… "
+                                                    + done + "/24");
+                                        }
+                                    });
+                                }
+                            });
+                        }
                     } else if (spec.range == RANGE_TODAY) {
                         long[] window = DeepSeekClient.todayWindow();
                         data = DeepSeekClient.fetchExportRange(token, window[0], window[1]);
@@ -836,6 +856,15 @@ public class UsagePage extends Page {
             return;
         }
         viewDayOffset = range == RANGE_YESTERDAY ? -1 : 0;
+        viewDayIso = DeepSeekClient.isoToday();
+        viewRunningHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        if (viewDayOffset != 0) {
+            Calendar back = Calendar.getInstance();
+            back.add(Calendar.DAY_OF_MONTH, viewDayOffset);
+            viewDayIso = String.format(java.util.Locale.US, "%04d-%02d-%02d", back.get(Calendar.YEAR),
+                    back.get(Calendar.MONTH) + 1, back.get(Calendar.DAY_OF_MONTH));
+            viewRunningHour = 23;
+        }
         if (range == RANGE_TODAY || range == RANGE_YESTERDAY) {
             renderToday(data);
         } else {
@@ -917,7 +946,8 @@ public class UsagePage extends Page {
         boolean perItem = !matched.isEmpty() && SampleStore.hasItemStats(host, dim);
         // 平台逐时优先（单选时每个桶就是平台该小时的窗口值，和官网同一口径）
         java.util.LinkedHashMap<Integer, HourlyCache.Hour> platform =
-                viewDayOffset == 0 && HourlyCache.usable(host) ? HourlyCache.load(host) : null;
+                viewDayIso != null && HourlyCache.usable(host, viewDayIso)
+                        ? HourlyCache.load(host, viewDayIso) : null;
         float[][] series = null;
         boolean fromPlatform = false;
         if (platform != null) {

@@ -50,30 +50,53 @@ public final class TodayBackfill {
         return false;
     }
 
-    /** Blocking; call from a background thread. */
+    /** True while some finished hour of the given day is missing from the platform cache. */
+    public static boolean needed(Context c, String isoDay, int lastHour) {
+        if (HourlyCache.disabled(c, isoDay)) {
+            return false;
+        }
+        LinkedHashMap<Integer, HourlyCache.Hour> cached = HourlyCache.load(c, isoDay);
+        for (int h = 0; h <= lastHour; h++) {
+            if (!cached.containsKey(h)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Blocking; fills today up to the hour that just ended. */
     public static void run(Context c, String token, Progress progress) {
-        if (token == null || token.isEmpty() || HourlyCache.disabled(c)) {
+        fill(c, token, localDate(), Calendar.getInstance().get(Calendar.HOUR_OF_DAY) - 1, progress);
+    }
+
+    /**
+     * Fetches every hour {@code 0..lastHour} of one local day as its own window and stores it, so a
+     * past day gets exactly the same per-hour buckets as today. Hours already cached are skipped.
+     */
+    public static void fill(Context c, String token, String isoDay, int lastHour, Progress progress) {
+        if (token == null || token.isEmpty() || HourlyCache.disabled(c, isoDay) || lastHour < 0) {
             return;
         }
         Calendar now = Calendar.getInstance();
-        int currentHour = now.get(Calendar.HOUR_OF_DAY);
-        long midnight = midnight(now);
+        int currentHour = lastHour + 1;
+        long midnight = dayStart(isoDay);
         double dayTokens = 0;
         List<SampleStore.Sample> today = SampleStore.today(c);
         for (SampleStore.Sample s : today) {
             dayTokens = Math.max(dayTokens, s.tokens);
         }
-        if (dayTokens <= 0) {
-            // no local samples (background sampling off): take the day's own total as the reference
+        if (dayTokens <= 0 || !isoDay.equals(localDate())) {
+            // reference total of the day being filled (also for a past day)
             try {
-                long[] window = DeepSeekClient.todayWindow();
+                long[] window = isoDay.equals(localDate())
+                        ? DeepSeekClient.todayWindow() : DeepSeekClient.localDayWindow(isoDay);
                 dayTokens = DeepSeekClient.fetchExportRange(token, window[0], window[1]).sumAll().tokens;
             } catch (DeepSeekClient.ApiException ignored) {
                 dayTokens = 0;
             }
         }
 
-        LinkedHashMap<Integer, HourlyCache.Hour> cached = HourlyCache.load(c);
+        LinkedHashMap<Integer, HourlyCache.Hour> cached = HourlyCache.load(c, isoDay);
         int budget = MAX_PER_RUN;
         double fetchedTokens = 0;
         boolean changed = false;
@@ -102,10 +125,10 @@ public final class TodayBackfill {
                 fetchedTokens += hour.tokens;
                 if (dayTokens > 0 && fetchedTokens > dayTokens * 1.05d + 10) {
                     // the endpoint ignored the window — do not trust any of it
-                    HourlyCache.disable(c);
+                    HourlyCache.disable(c, isoDay);
                     return;
                 }
-                HourlyCache.put(c, h, hour);
+                HourlyCache.put(c, isoDay, h, hour);
                 changed = true;
                 budget--;
             } catch (DeepSeekClient.ApiException e) {
@@ -131,6 +154,15 @@ public final class TodayBackfill {
                     s[SampleStore.STAT_COST], tokens, s[SampleStore.STAT_REQUESTS],
                     s[SampleStore.STAT_HIT], s[SampleStore.STAT_MISS], s[SampleStore.STAT_OUT]});
         }
+    }
+
+    /** Local midnight of an ISO day in epoch millis. */
+    private static long dayStart(String isoDay) {
+        Calendar cal = Calendar.getInstance();
+        cal.clear();
+        cal.set(Integer.parseInt(isoDay.substring(0, 4)), Integer.parseInt(isoDay.substring(5, 7)) - 1,
+                Integer.parseInt(isoDay.substring(8, 10)), 0, 0, 0);
+        return cal.getTimeInMillis();
     }
 
     private static long midnight(Calendar reference) {
