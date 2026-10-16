@@ -157,6 +157,15 @@ public final class Prefs {
         return sp(c).getLong("last_balance_at", 0L);
     }
 
+    /** True when the most recent balance request failed (the shown value is stale). */
+    public static boolean offline(Context c) {
+        return sp(c).getBoolean("offline", false);
+    }
+
+    public static void setOffline(Context c, boolean value) {
+        sp(c).edit().putBoolean("offline", value).apply();
+    }
+
     public static void setLastBalance(Context c, double v, long at) {
         sp(c).edit()
                 .putLong("last_balance", Double.doubleToLongBits(v))

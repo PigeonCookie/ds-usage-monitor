@@ -95,6 +95,7 @@ public class DashboardPage extends Page {
                         balance = DeepSeekClient.fetchBalance(apiKey);
                     } catch (DeepSeekClient.ApiException e) {
                         error = e.getMessage();
+                        Prefs.setOffline(host, true);
                     }
                     if (!token.isEmpty()) {
                         try {
@@ -201,7 +202,11 @@ public class DashboardPage extends Page {
         }
         Prefs.setLastBalance(host, b.total, b.fetchedAt == 0 ? System.currentTimeMillis() : b.fetchedAt);
 
+        Prefs.setOffline(host, false);
         StringBuilder meta = new StringBuilder();
+        if (Prefs.offline(host)) {
+            meta.append("⚠ 离线，显示上次数据 · ");
+        }
         meta.append("余额可用：").append(b.available ? "是" : "否");
         if (Math.abs(delta) > 0.0001d) {
             meta.append(" · 较上次 ").append(delta > 0 ? "+" : "−").append("¥").append(Fmt.money2(Math.abs(delta)));
@@ -276,6 +281,9 @@ public class DashboardPage extends Page {
         updatedLine.setText(at > 0 ? "最近刷新：" + Fmt.dateTime(at) : "尚未刷新");
         sampleLine.setText("本机采样：今日 " + SampleStore.today(host).size() + " 条 · 累计 "
                 + SampleStore.count(host) + " 条");
+        if (Prefs.offline(host)) {
+            balanceMeta.setText("⚠ 离线：以下为 " + (at > 0 ? Fmt.dateTime(at) : "上次") + " 的数据");
+        }
     }
 
     /** Floating "−¥0.42" / "+¥20.00" chip that drifts up and fades out when the balance moves. */
