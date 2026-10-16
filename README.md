@@ -169,5 +169,11 @@ python tools/make_icons.py --src art/character.png    # 换图后重跑；依赖
 ## 9. 协议
 
 代码以 [MIT](LICENSE) 协议开源。
-App 图标与角色立绘（`app/src/main/res`、`preview/preview-icon.png` 等）是作者本人作品，**不包含在 MIT 授权范围内**。
+
+**App 图标与角色立绘不是本项目作者的原创作品**，版权归原作者所有，**不在 MIT 授权范围内**。若你要 fork、再分发或商用，请自行确认该素材的授权，或换成自己的图：
+
+```bash
+python tools/make_icons.py --src <你的图.png>
+```
+
 DeepSeek 名称与标识归其所有者；本项目为非官方第三方工具。
