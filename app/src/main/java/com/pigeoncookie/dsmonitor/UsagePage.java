@@ -1282,7 +1282,22 @@ public class UsagePage extends Page {
         setTokenNote(tokenStack.length > 1, modelSummary(data));
 
         String note = keyModeWithoutKeys ? " · 该区间无法按 API Key 拆分（已按合计显示）" : "";
-        usageHint.setText(rangeLabel() + " · 日均 ¥" + Fmt.money2(stat.cost / Math.max(1, dates == null || dates.isEmpty() ? 1 : dates.size())) + "/天 · 已选 " + (selected.isEmpty() ? "全部" : selected.size() + " 项") + " · 更新于 " + clock());
+        // 日均只按"有消费的天"算：消费为 0 的日期不计入分母（按当前选中项口径统计）
+        int activeDays = 0;
+        for (UsageData.Day day : data.days()) {
+            double dayCost = selected.isEmpty() ? day.total.cost : 0;
+            for (String item : selected) {
+                dayCost += day.dim(dim, item).cost;
+            }
+            if (dayCost > 1e-7) {
+                activeDays++;
+            }
+        }
+        int dayCount = activeDays > 0 ? activeDays
+                : Math.max(1, dates == null || dates.isEmpty() ? 1 : dates.size());
+        usageHint.setText(rangeLabel() + " · 日均 ¥" + Fmt.money2(stat.cost / dayCount)
+                + "/天 · 已选 " + (selected.isEmpty() ? "全部" : selected.size() + " 项")
+                + " · 更新于 " + clock());
     }
 
     private String selectedSummary() {
