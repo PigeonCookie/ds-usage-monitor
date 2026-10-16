@@ -191,6 +191,48 @@ public final class HourlyCache {
         }
     }
 
+    /**
+     * Deletes the cache files of days older than {@code keepDays} (one file is written per day, so
+     * without this they would pile up in the app's private directory forever).
+     */
+    public static synchronized void prune(Context c, int keepDays) {
+        File dir = c.getFilesDir();
+        File[] files = dir == null ? null : dir.listFiles();
+        if (files == null) {
+            return;
+        }
+        long cutoff = System.currentTimeMillis() - keepDays * 24L * 3600_000L;
+        String prefix = "hourly-v" + FORMAT + "-";
+        for (File f : files) {
+            String name = f.getName();
+            boolean hourly = name.startsWith(prefix) && name.endsWith(".jsonl");
+            boolean flag = name.startsWith("hourly-off-");
+            if (!hourly && !flag) {
+                continue;
+            }
+            String stamp = hourly
+                    ? name.substring(prefix.length(), name.length() - ".jsonl".length())
+                    : name.substring("hourly-off-".length());
+            if (dayMillis(stamp) < cutoff) {
+                if (!f.delete()) {
+                    f.deleteOnExit();
+                }
+            }
+        }
+    }
+
+    private static long dayMillis(String isoDay) {
+        try {
+            Calendar cal = Calendar.getInstance();
+            cal.clear();
+            cal.set(Integer.parseInt(isoDay.substring(0, 4)), Integer.parseInt(isoDay.substring(5, 7)) - 1,
+                    Integer.parseInt(isoDay.substring(8, 10)), 0, 0, 0);
+            return cal.getTimeInMillis();
+        } catch (RuntimeException e) {
+            return Long.MAX_VALUE; // an unparsable name is left alone
+        }
+    }
+
     /** Diagnostic string: the raw per-hour numbers this app fetched from the platform. */
     public static String summary(Context c) {
         LinkedHashMap<Integer, Hour> all = load(c);

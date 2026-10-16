@@ -118,6 +118,8 @@ public final class TodayBackfill {
                 progress.onProgress(currentHour, currentHour);
             }
         }
+        // housekeeping: the per-day cache files of previous days serve no purpose any more
+        HourlyCache.prune(c, 7);
     }
 
     private static void fill(LinkedHashMap<String, double[]> target, Map<String, double[]> stats) {
