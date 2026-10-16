@@ -1085,6 +1085,37 @@ public class UsagePage extends Page {
             calibrated |= calibrate(new float[][]{reqValues}, stat.requests);
             calibrated |= calibrate(tokenStack, stat.tokens);
         }
+        // 当前这一小时：请求数与三种 Token 同样取平台"这一小时窗口"的实值（消费金额已在上面处理）
+        if (runningHour != null && platform != null) {
+            double req = 0;
+            double hit = 0;
+            double miss = 0;
+            double outs = 0;
+            if (effective.isEmpty()) {
+                UsageData.Slice all = runningHour.sumAll();
+                req = all.requests;
+                hit = all.hitTokens;
+                miss = all.missTokens;
+                outs = all.outTokens;
+            } else {
+                for (String item : effective) {
+                    UsageData.Slice one = runningHour.sliceAll(dim, item);
+                    req += one.requests;
+                    hit += one.hitTokens;
+                    miss += one.missTokens;
+                    outs += one.outTokens;
+                }
+            }
+            if (reqValues != null && viewRunningHour < reqValues.length) {
+                reqValues[viewRunningHour] = (float) req;
+            }
+            if (tokenStack != null && tokenStack.length >= 3
+                    && viewRunningHour < tokenStack[0].length) {
+                tokenStack[0][viewRunningHour] = (float) outs;
+                tokenStack[1][viewRunningHour] = (float) miss;
+                tokenStack[2][viewRunningHour] = (float) hit;
+            }
+        }
         chartReq.setBars(reqValues, ticks);
         if (tokenStack.length > 1) {
             chartTokens.setStacked(tokenStack, tokenColors(), ticks);
