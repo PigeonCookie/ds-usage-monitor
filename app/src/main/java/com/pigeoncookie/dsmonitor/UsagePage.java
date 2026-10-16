@@ -1148,7 +1148,7 @@ public class UsagePage extends Page {
         if (!selected.isEmpty()) {
             hint.append(" · 已选 ").append(selected.size()).append(" 项");
         } else {
-            hint.append(" · 全部");
+            hint.append(" · 已选 全部");
         }
         if (calibrated) {
             hint.append(" · 逐时已按今日合计校准");
