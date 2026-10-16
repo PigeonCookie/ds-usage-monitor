@@ -1151,7 +1151,7 @@ public class UsagePage extends Page {
         if (calibrated) {
             hint.append(" · 逐时已按今日合计校准");
         }
-        hint.append(" · 更新 ").append(clock());
+        hint.append(" · 更新于 ").append(clock());
         usageHint.setText(hint.toString());
     }
 
@@ -1280,7 +1280,7 @@ public class UsagePage extends Page {
         setTokenNote(tokenStack.length > 1, modelSummary(data));
 
         String note = keyModeWithoutKeys ? " · 该区间无法按 API Key 拆分（已按合计显示）" : "";
-        usageHint.setText(rangeLabel() + " · 日均 ¥" + Fmt.money2(stat.cost / Math.max(1, dates == null || dates.isEmpty() ? 1 : dates.size())) + "/天 · 已选 " + (selected.isEmpty() ? "全部" : selected.size() + " 项") + " · 更新 " + clock());
+        usageHint.setText(rangeLabel() + " · 日均 ¥" + Fmt.money2(stat.cost / Math.max(1, dates == null || dates.isEmpty() ? 1 : dates.size())) + "/天 · 已选 " + (selected.isEmpty() ? "全部" : selected.size() + " 项") + " · 更新于 " + clock());
     }
 
     private String selectedSummary() {
