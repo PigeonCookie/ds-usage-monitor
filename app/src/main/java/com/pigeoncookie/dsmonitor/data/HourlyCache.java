@@ -211,7 +211,16 @@ public final class HourlyCache {
     }
 
     public static boolean disabled(Context c, String isoDay) {
-        return flagFile(c, isoDay).exists();
+        // 1.2.6/55 removed the day-wide disable: any flag left over from an older build is dropped
+        // here, otherwise it would keep blocking today's hourly fill and the view would stay sampled.
+        File stale = flagFile(c, isoDay);
+        if (stale.exists()) {
+            if (!stale.delete()) {
+                stale.deleteOnExit();
+            }
+            return false;
+        }
+        return false;
     }
 
     public static void disable(Context c) {
