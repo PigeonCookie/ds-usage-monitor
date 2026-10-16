@@ -1,6 +1,7 @@
 package com.pigeoncookie.dsmonitor.data;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.pigeoncookie.dsmonitor.core.DeepSeekClient;
 import com.pigeoncookie.dsmonitor.core.LocalDayCache;
@@ -56,6 +57,8 @@ public final class TodayBackfill {
         if (HourlyCache.disabled(c, isoDay)) {
             return false;
         }
+        boolean[] broken = brokenHours(c);
+        int skipped = 0;
         LinkedHashMap<Integer, HourlyCache.Hour> cached = HourlyCache.load(c, isoDay);
         for (int h = 0; h <= lastHour; h++) {
             if (!cached.containsKey(h)) {
@@ -124,10 +127,11 @@ public final class TodayBackfill {
                 fill(hour.keys, data.itemStatsAll(UsageData.DIM_KEY));
                 fill(hour.models, data.itemStatsAll(UsageData.DIM_MODEL));
                 fetchedTokens += hour.tokens;
-                if (dayTokens > 0 && fetchedTokens > dayTokens * 1.05d + 10) {
-                    // the endpoint ignored the window — do not trust any of it
-                    HourlyCache.disable(c, isoDay);
-                    return;
+                if (dayTokens > 0 && !broken[h] && fetchedTokens > dayTokens * 1.05d + 10) {
+                    // 只跳过这一档的校验：本机采样本身可能漏采（此处基准偏低），
+                    // 但官网这一小时的数据仍然写入，绝不因此把整天弃用。
+                    Log.w("DSMonitor", "hour=" + h + " off=" + fetchedTokens + " local=" + dayTokens);
+                    skipped++;
                 }
                 HourlyCache.put(c, isoDay, h, hour);
                 changed = true;
@@ -179,6 +183,24 @@ public final class TodayBackfill {
                     s[SampleStore.STAT_COST], tokens, s[SampleStore.STAT_REQUESTS],
                     s[SampleStore.STAT_HIT], s[SampleStore.STAT_MISS], s[SampleStore.STAT_OUT]});
         }
+    }
+
+    /**
+     * Hours whose sampling chain has a hole (no sample for more than 20 minutes): the local estimate
+     * for those hours is not a usable yardstick, so the platform value must be taken as-is.
+     */
+    private static boolean[] brokenHours(Context c) {
+        boolean[] broken = new boolean[24];
+        long last = 0;
+        for (SampleStore.Sample s : SampleStore.today(c)) {
+            if (last > 0 && s.t - last > 20L * 60L * 1000L) {
+                Calendar cal = Calendar.getInstance();
+                cal.setTimeInMillis(s.t);
+                broken[cal.get(Calendar.HOUR_OF_DAY)] = true;
+            }
+            last = s.t;
+        }
+        return broken;
     }
 
     /** Local midnight of an ISO day in epoch millis. */
