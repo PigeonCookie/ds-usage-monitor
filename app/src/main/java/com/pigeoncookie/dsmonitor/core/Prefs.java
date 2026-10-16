@@ -18,6 +18,15 @@ public final class Prefs {
         return c.getApplicationContext().getSharedPreferences(FILE, Context.MODE_PRIVATE);
     }
 
+    /** Optional custom User-Agent for the platform endpoints ("" = built-in default). */
+    public static String userAgent(Context c) {
+        return sp(c).getString("user_agent", "");
+    }
+
+    public static void setUserAgent(Context c, String value) {
+        sp(c).edit().putString("user_agent", value == null ? "" : value.trim()).apply();
+    }
+
     public static String apiKey(Context c) {
         return sp(c).getString("api_key", "");
     }

@@ -95,6 +95,18 @@ public final class DeepSeekClient {
         }
     }
 
+    /** Custom User-Agent for every request; empty means the built-in default. */
+    private static String customUserAgent = "";
+
+    public static void setUserAgent(String value) {
+        customUserAgent = value == null ? "" : value.trim();
+    }
+
+    /** The User-Agent to send (may be empty: the HTTP layer then keeps its own default). */
+    public static String userAgent() {
+        return customUserAgent;
+    }
+
     // ------------------------------------------------------------------ usage windows
 
     /** {@code [local midnight, next full hour]} in epoch seconds — "today" in the device zone. */

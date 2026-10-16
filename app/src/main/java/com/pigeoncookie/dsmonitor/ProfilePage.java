@@ -1,5 +1,7 @@
 package com.pigeoncookie.dsmonitor;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.pm.PackageInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -194,6 +196,37 @@ public class ProfilePage extends Page {
         applyKeyVisibility();
         loadAvatar();
         TextView version = root.findViewById(R.id.version_line);
+version.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                final EditText input = new EditText(host);
+                input.setText(Prefs.userAgent(host));
+                input.setHint("留空 = 默认 UA");
+                input.setSingleLine(true);
+                new AlertDialog.Builder(host)
+                        .setTitle("自定义 User-Agent（仅作用于平台接口）")
+                        .setView(input)
+                        .setPositiveButton("保存", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Prefs.setUserAgent(host, input.getText().toString());
+                                DeepSeekClient.setUserAgent(Prefs.userAgent(host));
+                                host.toast("已保存，下次请求生效");
+                            }
+                        })
+                        .setNeutralButton("恢复默认", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Prefs.setUserAgent(host, "");
+                                DeepSeekClient.setUserAgent("");
+                                host.toast("已恢复默认 UA");
+                            }
+                        })
+                        .setNegativeButton("取消", null)
+                        .show();
+                return true;
+            }
+        });
         version.setText("版本 " + versionName() + " · 无广告 · 仅本机保存密钥");
     }
 
