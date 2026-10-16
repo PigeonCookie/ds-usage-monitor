@@ -15,9 +15,11 @@
 
 点柱子弹出该时段明细（Tokens 会拆成 输入（命中缓存）/ 输入（未命中缓存）/ 输出）：
 
+<!-- 想展示弹窗：点开任意一根柱子截一张，存为 preview/preview-usage-tooltip.png，再把下面这行的注释打开
 ![柱状图弹窗](preview/preview-usage-tooltip.png)
+-->
 
-> `preview/*.png` 是按 `res/layout` 的真实尺寸、间距与配色渲染的**设计预览图**（不是真机截图），用于在没有设备时核对布局。
+> `preview/*.png` 是真机截图（1280×2772），直观展示实际界面效果。
 
 ---
 
