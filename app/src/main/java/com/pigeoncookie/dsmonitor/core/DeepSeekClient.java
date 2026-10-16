@@ -163,6 +163,16 @@ public final class DeepSeekClient {
                 c.get(Calendar.MONTH) + 1, c.get(Calendar.DAY_OF_MONTH));
     }
 
+    /** The local hour that is still running, as an export window {@code [H:00, H+1:00]}. */
+    public static long[] currentHourWindow() {
+        Calendar start = Calendar.getInstance();
+        start.set(Calendar.MINUTE, 0);
+        start.set(Calendar.SECOND, 0);
+        start.set(Calendar.MILLISECOND, 0);
+        long from = start.getTimeInMillis() / 1000L;
+        return new long[]{from, from + 3600L};
+    }
+
     /** One local day; finished days are cached on disk because their numbers never change. */
     public static UsageData fetchLocalDay(android.content.Context c, String token, String isoDay)
             throws ApiException {

@@ -57,6 +57,8 @@ public class UsagePage extends Page {
     private String viewDayIso;
     /** Hour that is still running (today) or 23 for a finished day. */
     private int viewRunningHour = 23;
+    /** Platform data for the hour that is still running (its own window, may be partial). */
+    private UsageData runningHour;
     private static final int MAX_SERIES = 6;
     private static final int MAX_LEGEND = 4;
     private static final int MAX_DAYS = 120;
@@ -757,6 +759,7 @@ public class UsagePage extends Page {
                     if (spec.range == RANGE_YESTERDAY) {
                         data = DeepSeekClient.fetchLocalDay(host, token, spec.from);
                         byKey = true;
+                        runningHour = null;
                         // 昨天的逐时同样按小时向平台取（24 次，一次后落盘缓存）
                         if (TodayBackfill.needed(host, spec.from, 23)) {
                             final String dayLabel = spec.from;
@@ -777,6 +780,12 @@ public class UsagePage extends Page {
                         long[] window = DeepSeekClient.todayWindow();
                         data = DeepSeekClient.fetchExportRange(token, window[0], window[1]);
                         byKey = true;
+                        try {
+                            long[] cur = DeepSeekClient.currentHourWindow();
+                            runningHour = DeepSeekClient.fetchExportRange(token, cur[0], cur[1]);
+                        } catch (DeepSeekClient.ApiException ignored) {
+                            runningHour = null;
+                        }
                         // 补齐"打开应用之前"的那几个小时，否则整天会堆在第一根柱子里
                         if (TodayBackfill.needed(host)) {
                             TodayBackfill.run(host, token, new TodayBackfill.Progress() {
@@ -976,10 +985,18 @@ public class UsagePage extends Page {
                             finished += multi[i][h];
                         }
                     }
-                    double rest = Math.max(0, stat.cost - finished);
-                    for (int i = 0; i < multi.length; i++) {
-                        double share = shareSum > 0 ? shares[i] / shareSum : 1.0 / multi.length;
-                        multi[i][viewRunningHour] = (float) (rest * share);
+                    if (runningHour != null) {
+                        // 平台对"当前小时自己的窗口"会给进行中的实值：总额与分 Key 都直接用真的
+                        for (int i = 0; i < multi.length; i++) {
+                            multi[i][viewRunningHour] = (float)
+                                    runningHour.sliceAll(dim, effective.get(i)).cost;
+                        }
+                    } else {
+                        double rest = Math.max(0, stat.cost - finished);
+                        for (int i = 0; i < multi.length; i++) {
+                            double share = shareSum > 0 ? shares[i] / shareSum : 1.0 / multi.length;
+                            multi[i][viewRunningHour] = (float) (rest * share);
+                        }
                     }
                     series = multi;
                     fromPlatform = true;
@@ -987,6 +1004,10 @@ public class UsagePage extends Page {
             } else {
                 float[] hours = platformHours(platform, dim, effective, HourlyCache.COST, stat.cost);
                 if (hours != null && !allZero(new float[][]{hours})) {
+                    if (runningHour != null && !effective.isEmpty()) {
+                        hours[viewRunningHour] = (float)
+                                runningHour.sliceAll(dim, effective.get(0)).cost;
+                    }
                     series = new float[][]{hours};
                     fromPlatform = true;
                 }
