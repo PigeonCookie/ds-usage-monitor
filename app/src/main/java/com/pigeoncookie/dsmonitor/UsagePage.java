@@ -957,8 +957,9 @@ public class UsagePage extends Page {
                 boolean anyItem = false;
                 for (int i = 0; i < effective.size(); i++) {
                     java.util.List<String> one = java.util.Collections.singletonList(effective.get(i));
+                    // 每个 Key 自己的当日合计（不能用整个选区的合计，否则"正在走的小时"会被重复补齐）
                     float[] hours = platformHours(platform, dim, one, HourlyCache.COST,
-                            sumOf(data, one, true).cost);
+                            data.sliceAll(dim, effective.get(i)).cost);
                     if (hours != null) {
                         multi[i] = hours;
                         anyItem = true;
