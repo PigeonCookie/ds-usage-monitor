@@ -3,6 +3,7 @@ package com.pigeoncookie.dsmonitor.data;
 import android.content.Context;
 
 import com.pigeoncookie.dsmonitor.core.DeepSeekClient;
+import com.pigeoncookie.dsmonitor.core.LocalDayCache;
 import com.pigeoncookie.dsmonitor.core.SampleStore;
 import com.pigeoncookie.dsmonitor.core.UsageData;
 
@@ -141,8 +142,32 @@ public final class TodayBackfill {
                 progress.onProgress(currentHour, currentHour);
             }
         }
+        preheat(c, token);
         // housekeeping: the per-day cache files of previous days serve no purpose any more
         HourlyCache.prune(c, 7);
+    }
+
+    /**
+     * Tops up the local day cache a few days per run (oldest first), so the last month stays
+     * viewable even when the platform API is unreachable. Silently stops on the first failure.
+     */
+    private static void preheat(Context c, String token) {
+        int budget = 3;
+        for (int back = 30; back >= 1 && budget > 0; back--) {
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.DAY_OF_MONTH, -back);
+            String iso = String.format(Locale.US, "%04d-%02d-%02d", cal.get(Calendar.YEAR),
+                    cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH));
+            if (LocalDayCache.get(c, iso) != null) {
+                continue;
+            }
+            try {
+                DeepSeekClient.fetchLocalDay(c, token, iso);
+                budget--;
+            } catch (DeepSeekClient.ApiException e) {
+                return;
+            }
+        }
     }
 
     private static void fill(LinkedHashMap<String, double[]> target, Map<String, double[]> stats) {
