@@ -1448,14 +1448,17 @@ public class UsagePage extends Page {
                 .setItems(items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if (which >= 0 && which < ranges.length && ranges[which] != RANGE_CUSTOM) {
+                        if (which < 0 || which >= ranges.length) {
+                            return;
+                        }
+                        if (ranges[which] != RANGE_CUSTOM) {
                             range = ranges[which];
                             viewDayOffset = range == RANGE_YESTERDAY ? -1 : 0;
                             persist();
                             load(true);
                             return;
                         }
-                        if (which == RANGE_CUSTOM) {
+                        if (ranges[which] == RANGE_CUSTOM) {
                             DateRangeDialog.show(host, customFrom, customTo,
                                     new DateRangeDialog.Listener() {
                                         @Override
