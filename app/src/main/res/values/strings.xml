@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DeepSeek 用量监测</string>
+    <string name="brand">deepseek</string>
+    <string name="brand_badge">用量监测</string>
+
+    <string name="tab_dashboard">余额</string>
+    <string name="tab_usage">用量</string>
+    <string name="tab_profile">我的</string>
+
+    <string name="dashboard_title">用量信息</string>
+    <string name="dashboard_subtitle">所有日期均按 GMT+8 时间显示，数据可能有 5 分钟延迟。</string>
+    <string name="topup_balance">充值余额</string>
+    <string name="cumulative_cost">累计消费金额</string>
+    <string name="granted_balance">赠送余额</string>
+    <string name="go_topup">去充值</string>
+    <string name="alert_on">余额预警已开启</string>
+    <string name="alert_off">余额预警未开启</string>
+    <string name="go_settings">去设置</string>
+    <string name="reload">重载</string>
+
+    <string name="usage_title">用量明细</string>
+    <string name="range_today">今天</string>
+    <string name="range_7d">近 7 天</string>
+    <string name="range_30d">近 30 天</string>
+    <string name="range_month">本月</string>
+    <string name="range_custom">自定义时间…</string>
+    <string name="filter_time">时间维度</string>
+    <string name="filter_key">API Key</string>
+    <string name="filter_model">模型</string>
+    <string name="filter_all">全部</string>
+    <string name="clear_filters">清除筛选条件</string>
+    <string name="export">导出</string>
+    <string name="chart_cost">消费金额（CNY）</string>
+    <string name="chart_requests">API 请求次数</string>
+    <string name="chart_tokens">Tokens</string>
+    <string name="seg_model">模型</string>
+    <string name="seg_total">API Key</string>
+    <string name="pick_range">选择时间范围</string>
+    <string name="pick_range_hint">先点开始日期，再点结束日期</string>
+    <string name="cancel">取消</string>
+    <string name="confirm">确定</string>
+
+    <string name="profile_title">我的</string>
+    <string name="nickname_hint">点击设置昵称</string>
+    <string name="change_avatar">更换头像</string>
+    <string name="save">保存</string>
+    <string name="api_section">API 配置</string>
+    <string name="api_key_label">DeepSeek API Key（查询余额）</string>
+    <string name="api_key_hint">sk-••••••••••••••••</string>
+    <string name="user_token_label">平台 User Token（查询用量明细）</string>
+    <string name="user_token_hint">粘贴 platform.deepseek.com 的 Bearer Token</string>
+    <string name="test_connection">测试连接</string>
+    <string name="pref_section">偏好设置</string>
+    <string name="appearance">外观模式</string>
+    <string name="appearance_day">日间</string>
+    <string name="appearance_night">夜间</string>
+    <string name="appearance_system">跟随系统</string>
+    <string name="balance_alert">余额预警</string>
+    <string name="balance_alert_threshold">预警阈值（CNY）</string>
+    <string name="hourly_sampling">后台用量采样（兜底）</string>
+    <string name="hourly_sampling_desc">开启后每 15 分钟记一次用量；平台逐时取不到时用它补齐曲线</string>
+    <string name="about_section">关于</string>
+    <string name="about_body">本应用为第三方本地工具，与 DeepSeek 官方无关联。\n余额来自官方接口 api.deepseek.com/user/balance；用量明细来自 platform.deepseek.com 的用量接口，需要在「我的」中填入平台 User Token。\n所有密钥仅保存在本机应用私有目录，不会上传到任何第三方服务器。</string>
+    <string name="token_help">获取方式：浏览器登录 platform.deepseek.com → 打开用量页 → F12 → Network → 找到 usage/cost 请求 → 复制 Authorization 头中的 Bearer 之后的内容。</string>
+</resources>

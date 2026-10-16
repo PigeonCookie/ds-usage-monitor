@@ -1,0 +1,30 @@
+# build output
+.build/
+dist/
+*.idsig
+
+# signing material — never publish a keystore
+keystore/
+*.jks
+*.keystore
+
+# local scratch (contains raw device screenshots and one-off dev scripts)
+.tmp/
+tools/dev/
+tools/*.png
+
+# source artwork (icons are committed in res/; the raw art stays local)
+art/
+
+# Android Studio / editors
+.idea/
+*.iml
+local.properties
+.gradle/
+build/
+captures/
+
+# OS noise
+Thumbs.db
+Desktop.ini
+.DS_Store

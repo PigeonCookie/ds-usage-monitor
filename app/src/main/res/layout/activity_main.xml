@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/ds_bg"
+    android:orientation="vertical"
+    android:clipChildren="false">
+
+    <FrameLayout
+        android:id="@+id/top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="54dp">
+
+        <ImageButton
+            android:id="@+id/btn_reload"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="start|center_vertical"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_icon_btn"
+            android:contentDescription="@string/reload"
+            android:padding="9dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_refresh"
+            android:tint="@color/ds_text_2" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/logo_transparent" />
+
+            <TextView
+                android:id="@+id/top_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:minWidth="80dp"
+                android:paddingEnd="3dp"
+                android:text="@string/brand"
+                android:textColor="@color/ds_text"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_chip"
+                android:paddingStart="7dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="7dp"
+                android:paddingBottom="2dp"
+                android:text="@string/brand_badge"
+                android:textColor="@color/ds_text_2"
+                android:textSize="9sp" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/ds_divider" />
+
+    <FrameLayout
+        android:id="@+id/page_container"
+        android:clipChildren="false"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <include
+            android:id="@+id/page_dashboard"
+            layout="@layout/page_dashboard"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <include
+            android:id="@+id/page_usage"
+            layout="@layout/page_usage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <include
+            android:id="@+id/page_profile"
+            layout="@layout/page_profile"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/ds_divider" />
+
+    <LinearLayout
+        android:id="@+id/bottom_nav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="56dp"
+        android:background="@color/ds_nav_bg"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/nav_dashboard"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_nav_item"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="7dp"
+            android:paddingBottom="7dp">
+
+            <ImageView
+                android:id="@+id/nav_icon_dashboard"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:contentDescription="@string/tab_dashboard"
+                android:src="@drawable/ic_wallet"
+                android:tint="@color/ds_text_3" />
+
+            <TextView
+                android:id="@+id/nav_label_dashboard"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="@string/tab_dashboard"
+                android:textColor="@color/ds_text_3"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/nav_usage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_nav_item"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="7dp"
+            android:paddingBottom="7dp">
+
+            <ImageView
+                android:id="@+id/nav_icon_usage"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:contentDescription="@string/tab_usage"
+                android:src="@drawable/ic_chart"
+                android:tint="@color/ds_text_3" />
+
+            <TextView
+                android:id="@+id/nav_label_usage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="@string/tab_usage"
+                android:textColor="@color/ds_text_3"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/nav_profile"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_nav_item"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="7dp"
+            android:paddingBottom="7dp">
+
+            <ImageView
+                android:id="@+id/nav_icon_profile"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:contentDescription="@string/tab_profile"
+                android:src="@drawable/ic_person"
+                android:tint="@color/ds_text_3" />
+
+            <TextView
+                android:id="@+id/nav_label_profile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="@string/tab_profile"
+                android:textColor="@color/ds_text_3"
+                android:textSize="11sp" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

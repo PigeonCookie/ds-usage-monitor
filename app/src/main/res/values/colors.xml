@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Day (light) palette. The night palette lives in values-night/colors.xml. -->
+<resources>
+    <color name="ds_bg">#F2F3F6</color>
+    <color name="ds_nav_bg">#FFFFFF</color>
+    <color name="ds_navbar">#101014</color>
+    <color name="ds_card">#FFFFFF</color>
+    <color name="ds_card_alt">#F4F5F8</color>
+    <color name="ds_control">#EDEFF3</color>
+
+    <color name="ds_text">#14161A</color>
+    <color name="ds_text_2">#5C6169</color>
+    <color name="ds_text_3">#8B9099</color>
+
+    <color name="ds_accent">#4D6BFE</color>
+    <!-- 日间同样使用参考截图的蓝色系（默认柱色 = Tokens「输出」蓝，略深保证白底对比度） -->
+    <color name="ds_chart">#2F6BA8</color>
+    <color name="ds_chart_2">#4E86B8</color>
+    <color name="ds_chart_3">#3F7EC1</color>
+    <color name="ds_chart_4">#7FA9C8</color>
+    <color name="ds_chart_5">#24537F</color>
+    <color name="ds_chart_6">#A8C6D8</color>
+    <color name="ds_chart_grid">#E5E7EC</color>
+    <color name="ds_chart_axis">#8A8F99</color>
+
+    <color name="ds_tok_hit">#5C8AA6</color>
+    <color name="ds_tok_miss">#35699B</color>
+    <color name="ds_tok_out">#0A4EA6</color>
+
+    <color name="ds_pill_bg">#14161A</color>
+    <color name="ds_pill_fg">#FFFFFF</color>
+    <color name="ds_badge_bg">#E2F7EB</color>
+    <color name="ds_badge_fg">#12854D</color>
+    <color name="ds_badge_off_bg">#EFF0F3</color>
+    <color name="ds_badge_off_fg">#8B9099</color>
+
+    <color name="ds_seg_on_bg">#14161A</color>
+    <color name="ds_seg_on_fg">#FFFFFF</color>
+    <color name="ds_seg_fg">#5C6169</color>
+
+    <color name="ds_divider">#E4E6EA</color>
+    <color name="ds_stroke">#E1E3E8</color>
+    <color name="ds_warn">#E2622F</color>
+    <color name="ds_rise">#12854D</color>
+    <color name="ds_error">#D93B3B</color>
+    <color name="ds_ripple">#22000000</color>
+</resources>

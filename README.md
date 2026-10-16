@@ -1,0 +1,167 @@
+# DSMonitor · DeepSeek 用量监测
+
+一个**轻量**的安卓用量监测 App：APK 约 **368 KB**，纯 Android framework 实现，**没有 AndroidX、没有 Gradle、没有任何第三方依赖**。
+界面参照 DeepSeek 开放平台的暗色风格，底部三个栏目：**余额 / 用量 / 我的**。所有密钥只存在本机，请求只发往 `api.deepseek.com` 与 `platform.deepseek.com`。
+
+> 非官方工具，与 DeepSeek 官方无关。
+
+| 余额 | 用量 | 我的 |
+| --- | --- | --- |
+| ![余额](preview/preview-dashboard.png) | ![用量](preview/preview-usage.png) | ![我的](preview/preview-profile.png) |
+
+点柱子弹出该时段明细（Tokens 会拆成 输入（命中缓存）/ 输入（未命中缓存）/ 输出）：
+
+![柱状图弹窗](preview/preview-usage-tooltip.png)
+
+> `preview/*.png` 是按 `res/layout` 的真实尺寸、间距与配色渲染的**设计预览图**（不是真机截图），用于在没有设备时核对布局。
+
+---
+
+## 1. 功能
+
+**第一页 · 余额**
+- **充值余额**（`topped_up_balance`，与开放平台一致）、**累计消费金额**、**赠送余额** 三张卡片；卡片下方另有**总余额**一行。
+- 左上角**重载**按钮（加载时图标旋转）。
+- **余额下降**：数字滚动、闪橙色、轻微脉冲，并飘出 `−¥0.xx` 浮标；**充值**（余额上升）飘绿色 `+¥xx` 浮标。
+- **累计消费**：上涨时滚动并闪橙色（花钱=预警色），**数值只增不减**（数据回落时保持原值，不闪色）。
+- **累计消费实时跟随**：平台累计（跨月扫描，缓存 5 分钟）在余额下降时立刻加上"本机实时增量"，卡片下方注明 `平台累计 ¥xxx + 本机实时 ¥0.xx`；只填 API Key 时用本机估算（初始余额 + 充值 − 当前余额）。
+- `余额预警已开启/未开启` 徽标 + `去设置`；低于阈值发通知；`去充值` 打开官方充值页。
+
+**第二页 · 用量**
+- **三张柱状图压在一页**（消费金额 / API 请求次数 / Tokens），按屏幕高度权重自适应，三张图时间轴严格对齐（Y 轴刻度预留固定槽宽）。
+- **模型 / API Key 分段开关** + 多选筛选：同时勾选多个项时，柱状图变成多条叠加系列并出现色点图例。
+- **每根柱子都能点**：弹出该时段明细（标题 + 合计 + 分项）；消费图按当前维度列出每个 Key / 模型的金额，Tokens 图列出三种 Token；点空白处、点同一根柱子或换选都会关闭。
+- 时间维度：**今天 / 近 7 天 / 近 30 天 / 本月 / 自定义时间**（月历区间选择器，可翻月、区间连选）。
+- **选择会被记住**（时间维度、维度开关、多选项）；`清除筛选条件` 一键回默认。
+- `导出` 生成当前视图 CSV（复制到剪贴板或保存文件），日范围会为每个选中项多出一列。
+
+**第三页 · 我的**
+- 头像（相册选择，自动裁剪压缩）与昵称；**DeepSeek API Key**（明文/密文切换）与**平台 User Token** 输入，`保存` 与 `测试连接`（分别探测两个接口，并回显今日数据、导出字段明细与平台逐时）。
+- **日间 / 夜间 / 跟随系统**：切换后停留在当前页（标签页也会记住）。
+- 余额预警开关 + 阈值；后台用量采样开关（兜底数据源）。
+- 关于卡片：内嵌 logo、版本、数据来源与隐私说明。
+
+---
+
+## 2. 数据来源与口径
+
+| 数据 | 接口 | 认证 |
+| --- | --- | --- |
+| 充值 / 赠送 / 总余额 | `GET https://api.deepseek.com/user/balance` | `Authorization: Bearer <API Key>` |
+| 用量明细（按日期 × Key × 模型 × 类型） | `GET https://platform.deepseek.com/api/v0/usage/export?start=&end=&tz=0`（zip/CSV） | `Bearer <平台 User Token>` |
+| 回退：月度用量 / 消费 | `GET https://platform.deepseek.com/api/v0/usage/{amount,cost}?month=&year=` | 同上 |
+
+**平台 User Token 获取**：浏览器登录 platform.deepseek.com → 打开用量页 → F12 → Network → 找到 `usage/cost` 请求 → 复制 `Authorization` 头里 `Bearer` 之后的内容（App 第三页也有同样提示）。
+
+口径说明（这些都是踩过坑才定下来的，改了会全线不一致）：
+
+- **日合计**：始终取自导出接口，按**本地日**取值 —— 每个本地日单独发一个 `[D 00:00, D+1 00:00)` 窗口（导出接口本身按 UTC 日给行，直接用 UTC 日会让柱状图整体偏移 8 小时）。已完成的历史日期会落盘缓存，重复查看不再请求。
+- **逐时曲线**：优先取**平台逐时** —— 当天每个已结束的小时单独请求 `[H:00, H+1:00)`，一个桶就是一个窗口，与开放平台同口径；**正在进行的这一小时 = 当日合计 − 已结束小时之和**（分类型相减），所以三张图加总严格等于卡片，不做任何"校准缩放"。
+- **兜底**：平台逐时取不到（无 Token / 缓存为空 / 被防呆禁用）时，逐时改用**本机采样**（刷新时 + 后台每 15 分钟各记一条累计值，柱高取相邻差值，增量按跨越时长加权分摊到各小时）；图卡右上角会写明当前用的是 `逐时（平台逐时 N 小时）` 还是 `逐时（本机采样）`。
+- **防呆**：如果导出接口不按窗口分段（每个窗口都返回整天），逐时窗口累加会超过当日合计 → 当天**整批弃用**并永久回退本机采样，绝不写入错误数据。
+- **三种 Token**：优先按平台字段名归类（`input_cache_hit_tokens` → 命中缓存、`input_cache_miss_tokens` → 未命中缓存、`output_tokens` → 输出）；字段名无法识别时才退化为"按行单价排序"（最便宜=命中、最贵=输出）。
+- 导出接口不可用时回退月度接口（此时只能按模型拆，按 Key 拆会提示"该区间无法按 API Key 拆分"）。
+- 累计消费：优先一次宽窗口导出统计全部消费，失败时逐月回退，取历史最大值，避免部分失败把数字改小。
+
+---
+
+## 3. 安装
+
+从 [Releases](../../releases) 下载 APK（或自行构建，见下），拷进手机点击安装（需允许安装未知来源应用）。
+
+- 包名 `com.pigeoncookie.dsmonitor`，minSdk 23（Android 6.0），targetSdk 34，锁竖屏。
+- 权限：`INTERNET`、`ACCESS_NETWORK_STATE`、`POST_NOTIFICATIONS`（余额预警）、`RECEIVE_BOOT_COMPLETED`（恢复后台采样）。
+
+## 4. 构建
+
+不需要 Gradle / Android Studio：
+
+```powershell
+tools\build.cmd                                            # 或
+powershell -ExecutionPolicy Bypass -File tools\build.ps1 -Sdk "C:\Android\sdk"
+```
+
+依赖：**JDK 17+**（`javac` / `keytool` 在 PATH 或 `JAVA_HOME` 里）与 **Android SDK**：
+
+```bash
+sdkmanager --install "platforms;android-34" "build-tools;35.0.0"
+```
+
+流程：`aapt2 compile` → `aapt2 link` → `javac --release 11` → class 打包成一个归档交给 `d8` → `classes.dex` 打进 APK → `zipalign` → `apksigner` 签名 → 跑纯 JVM 自测。
+
+> 为什么用 build-tools **35**：34 的 `d8` 处理本项目部分匿名内部类会内部报错，且直接传 90 个 class 路径会超出 Windows 命令行长度上限。
+
+**签名**：仓库**不含任何密钥**。首次构建会用 `keytool` 在 `keystore/dsmonitor.jks` 生成一个本地密钥（alias/口令默认 `dsmonitor`），也可以指定自己的：
+
+```powershell
+tools\build.ps1 -Keystore D:\keys\my.jks -StorePass <口令> -KeyAlias <别名>
+```
+
+`keystore/` 已在 `.gitignore` 中 —— **千万不要把自己的签名密钥推到公开仓库**。
+
+> Android Studio 用户注意：AGP 8 不接受 `AndroidManifest.xml` 里的 `package` 属性（脚本构建又必须保留它）。若要改用 Gradle，请删除该属性并在 `app/build.gradle` 里设置 `namespace = "com.pigeoncookie.dsmonitor"`。
+
+## 5. 测试
+
+```powershell
+java -cp .build\tests com.pigeoncookie.dsmonitor.core.CoreTest     # 构建脚本会自动跑
+```
+
+`tools/jvm-tests/CoreTest.java` 是**纯 JVM 测试**（不需要设备/模拟器），当前 **81 项全绿**，覆盖：JSON 解析、余额响应、月度 amount/cost 响应、导出 CSV 与 zip、三种 Token 归类（含"字段名不认识时按单价判定"）、按 Key/模型聚合、金额与 Token 格式化、多月合并、逐时缓存往返（格式与分项存活）。
+
+## 6. 目录结构
+
+```
+app/src/main/
+  AndroidManifest.xml
+  java/com/pigeoncookie/dsmonitor/
+    MainActivity.java          单 Activity：顶栏 + 三页 + 底部导航（记住上次所在页）
+    Page.java / PageHost.java  页面抽象与宿主接口
+    DashboardPage.java         第一页（余额、涨跌浮标、累计消费）
+    UsagePage.java             第二页（三图一页、维度多选、自定义区间、弹窗、导出）
+    ProfilePage.java           第三页（头像 / 密钥 / 外观 / 预警 / 采样开关）
+    DateRangeDialog.java       月历区间选择器
+    MoneyText.java             金额滚动 + 涨/跌高亮
+    BarChartView.java          无依赖柱状图（网格、单列/分组/堆叠、点击弹窗、动画）
+    Ui.java                    主题包装、圆形裁剪、dp / 取色
+    core/                      Json、Http、Fmt、Prefs、Balance、UsageData、DeepSeekClient、
+                               SampleStore、LocalDayCache、UsageRepo、Bg
+    data/                      HourlyCache（平台逐时）、TodayBackfill（逐时补齐）、
+                               SampleJobService（后台采样）、BootReceiver、Alerts
+  res/  layout / values / values-night / drawable / mipmap*
+tools/  build.ps1 / build.cmd（构建）、setup-sdk.ps1（SDK 安装）、
+        make_icons.py（图标生成）、render_preview*.py（设计预览）、set_version.py、
+        jvm-tests/CoreTest.java
+preview/ 设计预览图
+```
+
+## 7. 图标
+
+角色立绘是深色背景，`tools/make_icons.py` 的处理方式：
+
+1. 四角 flood fill（阈值 40）抠掉近黑背景，掩膜膨胀约 3px 消除 JPEG 暗边；**裁掉原图底部 6% 的渐变**。
+2. 自适应图标按 **72/108 安全区**构图（启动器会裁掉外层，铺满整幅反而会被放大裁切）；传统方形/圆形图标则铺满画布并**切到下沿以下**，避免底部出现白边。
+3. 输出白底圆角方形、圆形、自适应前景（白色背景层）、应用内 logo 与顶栏透明小标，全部为 WebP。
+
+```bash
+python tools/make_icons.py --src art/character.png    # 换图后重跑；依赖 Pillow + numpy
+```
+
+> 源立绘不入库（`art/` 已加入 `.gitignore`，默认读取 `art/character.png`，也可用 `--src` 或环境变量 `DSMON_ART` 指定）；生成好的图标本身已提交在 `res/` 里，普通贡献者无需重新生成。
+
+> 换图标后桌面若仍显示旧图标，是启动器的图标缓存，卸载重装一次即可。
+
+## 8. 隐私与已知限制
+
+- 所有密钥只写入本机 `SharedPreferences`（应用私有目录，未加密）；请求只发往 `api.deepseek.com` 与 `platform.deepseek.com`，不上传任何第三方服务器。
+- **API Key 只能查余额**，用量明细必须填平台 User Token。
+- 消费金额由"行单价 × 数量"累加，与官网内部结算精度存在**末位分级舍入差**（通常 1 分）。
+- 多选多项时，逐时同样走平台逐时（缓存里本就按 Key/模型分行存储）；若平台逐时不可用，则退化为按选中项过滤的本机采样。
+- 「今天」的逐时依赖平台逐时补齐：首次进入当天需要逐个已结束小时各发一次请求（有进度提示），之后当天不再重复；历史日期有磁盘缓存。
+- 首次启动默认**夜间模式**，与开放平台观感一致；界面锁竖屏（"三图一页"按竖屏高度分配权重）。
+
+## 9. 协议
+
+代码以 [MIT](LICENSE) 协议开源。
+App 图标与角色立绘（`app/src/main/res`、`preview/preview-icon.png` 等）是作者本人作品，**不包含在 MIT 授权范围内**。
+DeepSeek 名称与标识归其所有者；本项目为非官方第三方工具。

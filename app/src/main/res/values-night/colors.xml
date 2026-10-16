@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Night (dark) palette — mirrors the DeepSeek open-platform dark theme. -->
+<resources>
+    <color name="ds_bg">#101014</color>
+    <color name="ds_nav_bg">#16161A</color>
+    <color name="ds_navbar">#101014</color>
+    <color name="ds_card">#1F1F24</color>
+    <color name="ds_card_alt">#26262C</color>
+    <color name="ds_control">#2A2A31</color>
+
+    <color name="ds_text">#ECEDEF</color>
+    <color name="ds_text_2">#A5A8AF</color>
+    <color name="ds_text_3">#71747B</color>
+
+    <color name="ds_accent">#4D6BFE</color>
+    <!-- 图表配色对齐参考截图：默认柱色 = Tokens「输出」蓝，其余为同族深浅蓝 -->
+    <color name="ds_chart">#3F7EC1</color>
+    <color name="ds_chart_2">#709AB0</color>
+    <color name="ds_chart_3">#4E86B8</color>
+    <color name="ds_chart_4">#A8C6D8</color>
+    <color name="ds_chart_5">#2F6BA8</color>
+    <color name="ds_chart_6">#C4D9E6</color>
+    <color name="ds_chart_grid">#2C2C33</color>
+    <color name="ds_chart_axis">#6D6E70</color>
+
+    <color name="ds_tok_hit">#709AB0</color>
+    <color name="ds_tok_miss">#447EB2</color>
+    <color name="ds_tok_out">#0A4EA6</color>
+
+    <color name="ds_pill_bg">#E9EAEC</color>
+    <color name="ds_pill_fg">#14161A</color>
+    <color name="ds_badge_bg">#16321F</color>
+    <color name="ds_badge_fg">#4ADE80</color>
+    <color name="ds_badge_off_bg">#26262C</color>
+    <color name="ds_badge_off_fg">#8B9099</color>
+
+    <color name="ds_seg_on_bg">#0C0C10</color>
+    <color name="ds_seg_on_fg">#ECEDEF</color>
+    <color name="ds_seg_fg">#A5A8AF</color>
+
+    <color name="ds_divider">#28282E</color>
+    <color name="ds_stroke">#31313A</color>
+    <color name="ds_warn">#FF8A4C</color>
+    <color name="ds_rise">#4ADE80</color>
+    <color name="ds_error">#FF6B6B</color>
+    <color name="ds_ripple">#33FFFFFF</color>
+</resources>
