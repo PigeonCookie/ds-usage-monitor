@@ -1143,8 +1143,8 @@ public class UsagePage extends Page {
 
         int samples = SampleStore.today(host).size();
         StringBuilder hint = new StringBuilder();
-        hint.append(range == RANGE_YESTERDAY ? "昨天 " : "今日 ").append(Fmt.money(stat.cost)).append(" · ")
-                .append(Fmt.group(stat.requests)).append(" 次请求");
+        int hours = range == RANGE_YESTERDAY ? 24 : Math.max(1, viewRunningHour + 1);
+        hint.append("时均 ¥").append(Fmt.money2(stat.cost / hours)).append("/时");
         if (!selected.isEmpty()) {
             hint.append(" · 已选 ").append(selected.size()).append(" 项");
         }
@@ -1158,7 +1158,15 @@ public class UsagePage extends Page {
         if (calibrated) {
             hint.append(" · 逐时已按今日合计校准");
         }
+        hint.append(" · 更新 ").append(clock());
         usageHint.setText(hint.toString());
+    }
+
+    /** Current wall clock as HH:mm. */
+    private static String clock() {
+        java.util.Calendar c = java.util.Calendar.getInstance();
+        return String.format(java.util.Locale.US, "%02d:%02d",
+                c.get(java.util.Calendar.HOUR_OF_DAY), c.get(java.util.Calendar.MINUTE));
     }
 
     private void renderDays(UsageData data) {
@@ -1279,8 +1287,7 @@ public class UsagePage extends Page {
         setTokenNote(tokenStack.length > 1, modelSummary(data));
 
         String note = keyModeWithoutKeys ? " · 该区间无法按 API Key 拆分（已按合计显示）" : "";
-        usageHint.setText(rangeLabel() + " 合计 " + Fmt.money(stat.cost) + " · "
-                + Fmt.group(stat.requests) + " 次请求 · " + selectedSummary() + note);
+        usageHint.setText(rangeLabel() + " · 日均 ¥" + Fmt.money2(stat.cost / Math.max(1, dates == null || dates.isEmpty() ? 1 : dates.size())) + "/天 · 已选 " + (selected.isEmpty() ? "全部" : selected.size() + " 项") + " · 更新 " + clock());
     }
 
     private String selectedSummary() {
