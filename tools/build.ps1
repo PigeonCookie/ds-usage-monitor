@@ -12,8 +12,8 @@ param(
     [string]$Keystore = '',
     [string]$StorePass = 'dsmonitor',
     [string]$KeyAlias = 'dsmonitor',
-    [string]$VersionName = '1.2.6',
-    [int]$VersionCode = 34,
+    [string]$VersionName = '1.2.7',
+    [int]$VersionCode = 35,
     [switch]$SkipTests
 )
 

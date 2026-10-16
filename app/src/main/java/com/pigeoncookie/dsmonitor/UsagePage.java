@@ -618,7 +618,7 @@ public class UsagePage extends Page {
     private String rangeLabel() {
         switch (range) {
             case RANGE_YESTERDAY:
-                return "昨日";
+                return "昨天";
             case RANGE_7D:
                 return host.getString(R.string.range_7d);
             case RANGE_30D:
@@ -989,8 +989,11 @@ public class UsagePage extends Page {
                     scaleOf(hourlyTokens, outTokens / typeSum),
                     scaleOf(hourlyTokens, missTokens / typeSum),
                     scaleOf(hourlyTokens, hitTokens / typeSum)};
-        } else {
+        } else if (viewDayOffset == 0) {
             tokenStack = tokenSeriesToday();
+        } else {
+            // yesterday without any local samples: show an empty chart instead of today's shape
+            tokenStack = new float[3][24];
         }
         if (perItem) {
             calibrated |= calibrate(new float[][]{reqValues}, stat.requests);
@@ -1009,7 +1012,7 @@ public class UsagePage extends Page {
 
         int samples = SampleStore.today(host).size();
         StringBuilder hint = new StringBuilder();
-        hint.append(range == RANGE_YESTERDAY ? "昨日 " : "今日 ").append(Fmt.money(stat.cost)).append(" · ")
+        hint.append(range == RANGE_YESTERDAY ? "昨天 " : "今日 ").append(Fmt.money(stat.cost)).append(" · ")
                 .append(Fmt.group(stat.requests)).append(" 次请求");
         if (!selected.isEmpty()) {
             hint.append(" · 已选 ").append(selected.size()).append(" 项");
@@ -1316,7 +1319,7 @@ public class UsagePage extends Page {
     private void showRangeDialog() {
         final String[] items = new String[]{
                 host.getString(R.string.range_today),
-                "昨日",
+                "昨天",
                 host.getString(R.string.range_7d),
                 host.getString(R.string.range_30d),
                 host.getString(R.string.range_month),
