@@ -1147,6 +1147,8 @@ public class UsagePage extends Page {
         hint.append("时均 ¥").append(Fmt.money2(stat.cost / hours)).append("/时");
         if (!selected.isEmpty()) {
             hint.append(" · 已选 ").append(selected.size()).append(" 项");
+        } else {
+            hint.append(" · 全部");
         }
         if (calibrated) {
             hint.append(" · 逐时已按今日合计校准");
