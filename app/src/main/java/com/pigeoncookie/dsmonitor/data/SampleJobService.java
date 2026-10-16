@@ -20,6 +20,8 @@ public class SampleJobService extends JobService {
     public static final int JOB_ID = 4711;
     /** JobScheduler's minimum periodic interval; more samples means a sharper hourly curve. */
     private static final long INTERVAL_MS = 15L * 60L * 1000L;
+    /** Let the system slide the run by up to this much instead of skipping/drifting it. */
+    private static final long FLEX_MS = 5L * 60L * 1000L;
 
     public static void schedule(Context c) {
         JobScheduler js = (JobScheduler) c.getSystemService(Context.JOB_SCHEDULER_SERVICE);
@@ -28,7 +30,7 @@ public class SampleJobService extends JobService {
         }
         JobInfo info = new JobInfo.Builder(JOB_ID, new ComponentName(c, SampleJobService.class))
                 .setPersisted(true)
-                .setPeriodic(INTERVAL_MS)
+                .setPeriodic(INTERVAL_MS, FLEX_MS)
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
                 .build();
         try {
