@@ -60,7 +60,7 @@ public final class DeepSeekClient {
     private static Map<String, String> headers(String token) {
         Map<String, String> h = new HashMap<>();
         h.put("authorization", "Bearer " + token);
-        h.put("user-agent", UA);
+        h.put("user-agent", userAgent().isEmpty() ? UA : userAgent());
         h.put("referer", REFERER);
         h.put("accept", "application/json, text/plain, */*");
         return h;
