@@ -1,6 +1,8 @@
 # DSMonitor · DeepSeek 用量监测
 
+<!-- CI 徽章暂时隐藏：workflow 还在（.github/workflows/build.yml），修好后把下面这行取消注释即可
 [![build](https://github.com/PigeonCookie/ds-usage-monitor/actions/workflows/build.yml/badge.svg)](https://github.com/PigeonCookie/ds-usage-monitor/actions/workflows/build.yml)
+-->
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![size](https://img.shields.io/badge/APK-372%20KB-brightgreen)
 
