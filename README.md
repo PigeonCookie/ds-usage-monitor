@@ -4,9 +4,9 @@
 [![build](https://github.com/PigeonCookie/ds-usage-monitor/actions/workflows/build.yml/badge.svg)](https://github.com/PigeonCookie/ds-usage-monitor/actions/workflows/build.yml)
 -->
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![size](https://img.shields.io/badge/APK-372%20KB-brightgreen)
+![size](https://img.shields.io/badge/APK-376%20KB-brightgreen)
 
-一个**轻量**的安卓用量监测 App：APK 约 **372 KB**，纯 Android framework 实现，**没有 AndroidX、没有 Gradle、没有任何第三方依赖**。
+一个**轻量**的安卓用量监测 App：APK 约 **376 KB**，纯 Android framework 实现，**没有 AndroidX、没有 Gradle、没有任何第三方依赖**。
 界面参照 DeepSeek 开放平台的暗色风格，底部三个栏目：**余额 / 用量 / 我的**。所有密钥只存在本机，请求只发往 `api.deepseek.com` 与 `platform.deepseek.com`。
 
 > **声明**：本项目是 **DeepSeek vibe coding** 的产物 —— 代码、界面与文档由 DeepSeek 模型生成，作者负责审阅、测试与发布；构建在本地用标准 Android 工具链完成（`aapt2` / `javac` / `d8` / `zipalign` / `apksigner`），**不是 DeepSeek 官方编译或发布的软件**，与 DeepSeek 官方无隶属关系。
@@ -51,6 +51,7 @@
 - 头像（相册选择，自动裁剪压缩）与昵称；**DeepSeek API Key**（明文/密文切换）与**平台 User Token** 输入，`保存` 与 `测试连接`（分别探测两个接口，并回显今日数据、导出字段明细与平台逐时）。
 - **日间 / 夜间 / 跟随系统**：切换后停留在当前页（标签页也会记住）。
 - 余额预警开关 + 阈值；后台用量采样开关（兜底数据源）。
+- **自定义 User-Agent**：长按「关于」里的版本行即可填写（留空=内置默认）。平台哪天加了 UA 校验，你可以直接从浏览器复制一个真实 UA 填进去，不必等新版本。
 - 关于卡片：内嵌 logo、版本、数据来源与隐私说明。
 
 ---
@@ -165,8 +166,9 @@ python tools/make_icons.py --src art/character.png    # 换图后重跑；依赖
 
 ## 8. 隐私与已知限制
 
-- 所有密钥只写入本机 `SharedPreferences`（应用私有目录，未加密）；请求只发往 `api.deepseek.com` 与 `platform.deepseek.com`，不上传任何第三方服务器。
+- 所有密钥只写入本机 `SharedPreferences`（应用私有目录，未加密；清单里已设 `android:allowBackup="false"`，`adb backup` 无法导出）；请求只发往 `api.deepseek.com` 与 `platform.deepseek.com`，不上传任何第三方服务器。
 - **API Key 只能查余额**，用量明细必须填平台 User Token。
+- 后台采样任务带 **5 分钟 flex 窗口**（`:setPeriodic(15min, 5min)`），Doze 下不易被跳过；每条样本记录的是**真实落点时间**，逐时曲线用的就是这个时间。
 - **历史缓存预热**：每次进入「今天」会顺带把最近 30 天里尚未缓存的日子补 3 天（由远及近），约十次就全部落盘（保留 60 天）。之后**平台接口不可用时，近 7 天 / 近 30 天 / 本月仍可翻看**，本月/逐时等取不到的部分会按上面的离线标记提示。
 - 消费金额由"行单价 × 数量"累加，与官网内部结算精度存在**末位分级舍入差**（通常 1 分）。
 - 多选多项时，逐时同样走平台逐时（缓存里本就按 Key/模型分行存储）；若平台逐时不可用，则退化为按选中项过滤的本机采样。
