@@ -951,10 +951,29 @@ public class UsagePage extends Page {
         float[][] series = null;
         boolean fromPlatform = false;
         if (platform != null) {
-            float[] hours = platformHours(platform, dim, effective, HourlyCache.COST, stat.cost);
-            if (hours != null && !allZero(new float[][]{hours})) {
-                series = new float[][]{hours};
-                fromPlatform = true;
+            if (effective.size() > 1) {
+                // 多选：平台逐时也要按项拆成多条系列（每项自己的当日合计用来补正在走的小时）
+                float[][] multi = new float[effective.size()][24];
+                boolean anyItem = false;
+                for (int i = 0; i < effective.size(); i++) {
+                    java.util.List<String> one = java.util.Collections.singletonList(effective.get(i));
+                    float[] hours = platformHours(platform, dim, one, HourlyCache.COST,
+                            sumOf(data, one, true).cost);
+                    if (hours != null) {
+                        multi[i] = hours;
+                        anyItem = true;
+                    }
+                }
+                if (anyItem) {
+                    series = multi;
+                    fromPlatform = true;
+                }
+            } else {
+                float[] hours = platformHours(platform, dim, effective, HourlyCache.COST, stat.cost);
+                if (hours != null && !allZero(new float[][]{hours})) {
+                    series = new float[][]{hours};
+                    fromPlatform = true;
+                }
             }
         }
         if (series == null && perItem && !effective.isEmpty()) {
@@ -989,6 +1008,16 @@ public class UsagePage extends Page {
 
         float[] platformRequests = platform == null ? null
                 : platformHours(platform, dim, effective, HourlyCache.REQUESTS, stat.requests);
+        float[][] platformReqStack = null;
+        if (platform != null && effective.size() > 1) {
+            platformReqStack = new float[effective.size()][24];
+            for (int i = 0; i < effective.size(); i++) {
+                java.util.List<String> one = java.util.Collections.singletonList(effective.get(i));
+                float[] hours = platformHours(platform, dim, one, HourlyCache.REQUESTS,
+                        sumOf(data, one, true).requests);
+                platformReqStack[i] = hours == null ? new float[24] : hours;
+            }
+        }
         reqValues = platformRequests != null ? platformRequests
                 : toFloats(SampleStore.hourlyFor(host, viewDayOffset, dim, perItem ? matched : null,
                 SampleStore.KIND_REQUESTS));
@@ -1029,7 +1058,11 @@ public class UsagePage extends Page {
             calibrated |= calibrate(new float[][]{reqValues}, stat.requests);
             calibrated |= calibrate(tokenStack, stat.tokens);
         }
-        chartReq.setBars(reqValues, ticks);
+        if (platformReqStack != null) {
+            chartReq.setStacked(platformReqStack, colors, ticks);
+        } else {
+            chartReq.setBars(reqValues, ticks);
+        }
         if (tokenStack.length > 1) {
             chartTokens.setStacked(tokenStack, tokenColors(), ticks);
         } else {
