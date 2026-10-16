@@ -124,10 +124,12 @@ public final class TodayBackfill {
                 fill(hour.keys, data.itemStatsAll(UsageData.DIM_KEY));
                 fill(hour.models, data.itemStatsAll(UsageData.DIM_MODEL));
                 fetchedTokens += hour.tokens;
-                if (dayTokens > 0 && fetchedTokens > dayTokens * 1.05d + 10) {
-                    // the endpoint ignored the window — do not trust any of it
-                    HourlyCache.disable(c, isoDay);
-                    return;
+                if (hour.tokens > 0 && (double) hour.tokens > dayTokens * 1.05d) {
+                    // 本机采样只是参考：链断了就直接认官网，没断档也只标记存疑，绝不弃用整天
+                    boolean broken = gapBroken(c);
+                    hour.approx = !broken;
+                    android.util.Log.w("DSMonitor", "hour=" + h + " off=" + hour.tokens
+                            + " local=" + dayTokens + " broken=" + broken);
                 }
                 HourlyCache.put(c, isoDay, h, hour);
                 changed = true;
@@ -179,6 +181,25 @@ public final class TodayBackfill {
                     s[SampleStore.STAT_COST], tokens, s[SampleStore.STAT_REQUESTS],
                     s[SampleStore.STAT_HIT], s[SampleStore.STAT_MISS], s[SampleStore.STAT_OUT]});
         }
+    }
+
+    /**
+     * True when today's samples have a hole longer than 20 minutes (or none at all): the local
+     * estimate is then no yardstick for the platform's numbers.
+     */
+    private static boolean gapBroken(Context c) {
+        long last = 0;
+        java.util.List<SampleStore.Sample> samples = SampleStore.today(c);
+        if (samples.isEmpty()) {
+            return true;
+        }
+        for (SampleStore.Sample s : samples) {
+            if (last > 0 && s.t - last > 20L * 60L * 1000L) {
+                return true;
+            }
+            last = s.t;
+        }
+        return false;
     }
 
     /** Local midnight of an ISO day in epoch millis. */

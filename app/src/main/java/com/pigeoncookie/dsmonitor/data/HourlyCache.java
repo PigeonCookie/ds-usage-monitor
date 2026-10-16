@@ -47,6 +47,8 @@ public final class HourlyCache {
         public long hitTokens;
         public long missTokens;
         public long outTokens;
+        /** True when the local sampling chain was patchy for this hour (value comes from the platform). */
+        public boolean approx;
         public final LinkedHashMap<String, double[]> keys = new LinkedHashMap<>();
         public final LinkedHashMap<String, double[]> models = new LinkedHashMap<>();
 
@@ -144,6 +146,9 @@ public final class HourlyCache {
                         Double.parseDouble(p[5].trim()), Double.parseDouble(p[6].trim()),
                         Double.parseDouble(p[7].trim()), Double.parseDouble(p[8].trim())};
                 if ("total".equals(kind)) {
+                    if (p.length > 9) {
+                        h.approx = "1".equals(p[9].trim());
+                    }
                     h.cost = values[COST];
                     h.tokens = (long) values[TOKENS];
                     h.requests = (long) values[REQUESTS];
@@ -319,7 +324,8 @@ public final class HourlyCache {
             head(sb, h.hour, "total", "");
             sb.append(h.cost).append('|').append(h.tokens).append('|').append(h.requests)
                     .append('|').append(h.hitTokens).append('|').append(h.missTokens)
-                    .append('|').append(h.outTokens).append('\n');
+                    .append('|').append(h.outTokens).append('|').append(h.approx ? 1 : 0)
+                    .append('\n');
             for (Map.Entry<String, double[]> item : h.keys.entrySet()) {
                 itemLine(sb, h.hour, "key", item);
             }

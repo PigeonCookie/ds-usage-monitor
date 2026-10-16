@@ -59,6 +59,8 @@ public class UsagePage extends Page {
     private int viewRunningHour = 23;
     /** Platform data for the hour that is still running (its own window, may be partial). */
     private UsageData runningHour;
+    /** Hours whose platform value is kept while the local sampling chain was patchy. */
+    private boolean[] approxHours;
     private static final int MAX_SERIES = 6;
     private static final int MAX_LEGEND = 4;
     private static final int MAX_DAYS = 120;
@@ -235,7 +237,10 @@ public class UsagePage extends Page {
                 int[] colors = tokenColors();
                 if (tokenStack != null && tokenStack.length >= 3) {
                     // 堆叠顺序是 [输出, 未命中, 命中]，弹窗按 命中/未命中/输出 读回去
-                    tip.add("输入（命中缓存）", Fmt.group((long) tokenStack[2][index]), colors[2]);
+                    if (approxHours != null && index < approxHours.length && approxHours[index]) {
+                tip.add("本机未采全，以官网为准", "", colors[2]);
+            }
+            tip.add("输入（命中缓存）", Fmt.group((long) tokenStack[2][index]), colors[2]);
                     tip.add("输入（未命中缓存）", Fmt.group((long) tokenStack[1][index]), colors[1]);
                     tip.add("输出", Fmt.group((long) tokenStack[0][index]), colors[0]);
                 } else {
@@ -760,6 +765,7 @@ public class UsagePage extends Page {
                         data = DeepSeekClient.fetchLocalDay(host, token, spec.from);
                         byKey = true;
                         runningHour = null;
+        approxHours = null;
                         // 昨天的逐时同样按小时向平台取（24 次，一次后落盘缓存）
                         if (TodayBackfill.needed(host, spec.from, 23)) {
                             final String dayLabel = spec.from;
@@ -957,6 +963,14 @@ public class UsagePage extends Page {
         java.util.LinkedHashMap<Integer, HourlyCache.Hour> platform =
                 viewDayIso != null && HourlyCache.usable(host, viewDayIso)
                         ? HourlyCache.load(host, viewDayIso) : null;
+        if (platform != null) {
+            approxHours = new boolean[24];
+            for (java.util.Map.Entry<Integer, HourlyCache.Hour> e : platform.entrySet()) {
+                if (e.getKey() >= 0 && e.getKey() < 24) {
+                    approxHours[e.getKey()] = e.getValue().approx;
+                }
+            }
+        }
         float[][] series = null;
         boolean fromPlatform = false;
         if (platform != null) {
