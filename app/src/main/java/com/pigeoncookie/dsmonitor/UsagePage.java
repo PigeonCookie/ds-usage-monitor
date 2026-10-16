@@ -212,7 +212,7 @@ public class UsagePage extends Page {
                 tip.title = titleAt(index);
                 long value = reqValues != null && index < reqValues.length ? (long) reqValues[index] : 0;
                 tip.total = Fmt.group(value);
-                tip.add("请求次数", Fmt.group(value), 0);
+                tip.add("请求次数", Fmt.group(value), Ui.color(host, R.color.ds_chart));
                 return tip;
             }
         });
