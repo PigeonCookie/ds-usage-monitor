@@ -26,9 +26,23 @@ jobs:
           if (-not $mgr) { throw "sdkmanager not found under $sdk" }
           & $mgr --install 'platforms;android-34' 'build-tools;35.0.0'
 
+      - name: Show toolchain versions (helps diagnose CI-only failures)
+        shell: pwsh
+        run: |
+          Write-Host "ANDROID_SDK_ROOT = $env:ANDROID_SDK_ROOT"
+          Write-Host "ANDROID_HOME     = $env:ANDROID_HOME"
+          Write-Host "JAVA_HOME        = $env:JAVA_HOME"
+          java -version
+          javac -version
+          $sdk = if ($env:ANDROID_SDK_ROOT) { $env:ANDROID_SDK_ROOT } else { $env:ANDROID_HOME }
+          Get-ChildItem (Join-Path $sdk 'build-tools') -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
+          Get-ChildItem (Join-Path $sdk 'platforms') -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
+
       - name: Build (aapt2 + javac + d8 + apksigner, no Gradle)
         shell: pwsh
-        run: ./tools/build.ps1
+        run: |
+          $sdk = if ($env:ANDROID_SDK_ROOT) { $env:ANDROID_SDK_ROOT } else { $env:ANDROID_HOME }
+          ./tools/build.ps1 -Sdk "$sdk" -BuildTools '35.0.0'
 
       - name: Core logic tests are part of the build; upload the APK
         uses: actions/upload-artifact@v4
