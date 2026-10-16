@@ -1,5 +1,9 @@
 # DSMonitor · DeepSeek 用量监测
 
+[![build](https://github.com/PigeonCookie/ds-usage-monitor/actions/workflows/build.yml/badge.svg)](https://github.com/PigeonCookie/ds-usage-monitor/actions/workflows/build.yml)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![size](https://img.shields.io/badge/APK-368%20KB-brightgreen)
+
 一个**轻量**的安卓用量监测 App：APK 约 **368 KB**，纯 Android framework 实现，**没有 AndroidX、没有 Gradle、没有任何第三方依赖**。
 界面参照 DeepSeek 开放平台的暗色风格，底部三个栏目：**余额 / 用量 / 我的**。所有密钥只存在本机，请求只发往 `api.deepseek.com` 与 `platform.deepseek.com`。
 

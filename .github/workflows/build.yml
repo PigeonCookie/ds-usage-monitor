@@ -1,0 +1,38 @@
+name: build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  apk:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install SDK packages (platform 34 + build-tools 35)
+        shell: pwsh
+        run: |
+          $sdk = if ($env:ANDROID_SDK_ROOT) { $env:ANDROID_SDK_ROOT } else { $env:ANDROID_HOME }
+          $mgr = Get-ChildItem $sdk -Recurse -Filter sdkmanager.bat -ErrorAction SilentlyContinue |
+                 Select-Object -First 1 -ExpandProperty FullName
+          if (-not $mgr) { throw "sdkmanager not found under $sdk" }
+          & $mgr --install 'platforms;android-34' 'build-tools;35.0.0'
+
+      - name: Build (aapt2 + javac + d8 + apksigner, no Gradle)
+        shell: pwsh
+        run: ./tools/build.ps1
+
+      - name: Core logic tests are part of the build; upload the APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: DSMonitor-apk
+          path: dist/*.apk
+          if-no-files-found: error
