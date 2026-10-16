@@ -28,3 +28,7 @@ captures/
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# python caches
+__pycache__/
+*.pyc
