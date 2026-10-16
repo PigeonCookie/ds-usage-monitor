@@ -39,7 +39,14 @@ jobs:
 
       - name: Build (aapt2 + javac + d8 + apksigner, no Gradle)
         shell: cmd
-        run: tools\build.cmd -Sdk "%ANDROID_SDK_ROOT%" -BuildTools 35.0.0
+        run: |
+          tools\build.cmd -Sdk "%ANDROID_SDK_ROOT%" -BuildTools 35.0.0 > build.log 2>&1
+          if errorlevel 1 (
+            echo ===== tail of build.log =====
+            powershell -NoProfile -Command "Get-Content build.log -Tail 20 | ForEach-Object { Write-Host $_; Write-Host ('::error::' + $_) }"
+            exit /b 1
+          )
+          type build.log
 
       - name: Core logic tests are part of the build; upload the APK
         uses: actions/upload-artifact@v4
