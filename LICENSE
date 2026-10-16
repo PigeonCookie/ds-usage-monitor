@@ -23,10 +23,11 @@ SOFTWARE.
 ---
 
 Note on assets: the launcher icon and the character artwork shipped under
-app/src/main/res (and shown in preview/) are **third-party artwork** — copyright
-belongs to the original author, and they are NOT covered by the MIT license
-above. If you fork or redistribute this project, make sure you have the right to
-use that artwork, or replace it with your own:
+app/src/main/res (and shown in preview/) are **third-party, AI-generated
+artwork**, used here with the original author's permission. They are NOT covered
+by the MIT license above, and that permission does not automatically extend to
+your fork — if you redistribute this project, either keep the credit or replace
+the artwork with your own:
 
     python tools/make_icons.py --src <your-artwork.png>
 

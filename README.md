@@ -173,7 +173,7 @@ python tools/make_icons.py --src art/character.png    # 换图后重跑；依赖
 
 代码以 [MIT](LICENSE) 协议开源。
 
-**App 图标与角色立绘不是本项目作者的原创作品**，版权归原作者所有，**不在 MIT 授权范围内**。若你要 fork、再分发或商用，请自行确认该素材的授权，或换成自己的图：
+**App 图标与角色立绘不是本项目作者的原创作品**：它们是由 AI 生成、且**已获得原作者许可**使用的第三方素材，**不在 MIT 授权范围内**；该许可不会自动延伸到你的 fork，若要再分发请保留出处或换成自己的图：
 
 ```bash
 python tools/make_icons.py --src <你的图.png>
