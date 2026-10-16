@@ -274,7 +274,8 @@ public class DashboardPage extends Page {
                 : "数据来源：官方余额接口 + 平台用量接口（platform.deepseek.com）");
         long at = Prefs.lastBalanceAt(host);
         updatedLine.setText(at > 0 ? "最近刷新：" + Fmt.dateTime(at) : "尚未刷新");
-        sampleLine.setText("本机采样：" + SampleStore.count(host) + " 条（平台逐时不可用时的兜底数据）");
+        sampleLine.setText("本机采样：今日 " + SampleStore.today(host).size() + " 条 · 共 "
+                + SampleStore.count(host) + " 条（最长保留 15 天，平台逐时不可用时的兜底数据）");
     }
 
     /** Floating "−¥0.42" / "+¥20.00" chip that drifts up and fades out when the balance moves. */
