@@ -977,6 +977,12 @@ public class UsagePage extends Page {
                         }
                     }
                     double rest = Math.max(0, stat.cost - finished);
+                    // 本机采样记录的是这个小时真实的增量；用它避免把"缓存里缺失的小时"都堆进最后一根
+                    double sampled = SampleStore.hourlyFor(host, viewDayOffset, dim,
+                            perItem ? matched : null, SampleStore.KIND_COST)[viewRunningHour];
+                    if (sampled > 0) {
+                        rest = sampled;
+                    }
                     for (int i = 0; i < multi.length; i++) {
                         double share = shareSum > 0 ? shares[i] / shareSum : 1.0 / multi.length;
                         multi[i][viewRunningHour] = (float) (rest * share);
