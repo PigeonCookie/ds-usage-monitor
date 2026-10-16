@@ -1148,13 +1148,6 @@ public class UsagePage extends Page {
         if (!selected.isEmpty()) {
             hint.append(" · 已选 ").append(selected.size()).append(" 项");
         }
-        if (samples < 2) {
-            hint.append(" · 平台逐时取不到时，逐时曲线改用本机采样（可在「我的」开启后台采样）");
-        } else if (!perItem && !selected.isEmpty()) {
-            hint.append(" · 本次采样尚未按").append(dimLabel()).append("拆分，图表先按合计显示");
-        } else {
-            hint.append(" · 本机采样 ").append(samples).append(" 次");
-        }
         if (calibrated) {
             hint.append(" · 逐时已按今日合计校准");
         }
