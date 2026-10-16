@@ -1143,8 +1143,23 @@ public class UsagePage extends Page {
 
         int samples = SampleStore.today(host).size();
         StringBuilder hint = new StringBuilder();
-        int hours = range == RANGE_YESTERDAY ? 24 : Math.max(1, viewRunningHour + 1);
-        hint.append("时均 ¥").append(Fmt.money2(stat.cost / hours)).append("/时");
+        // 时均只按"有消费的小时"算：消费为 0 的小时不计入分母
+        int activeHours = 0;
+        int lastHour = range == RANGE_YESTERDAY ? 23 : viewRunningHour;
+        for (int h = 0; h <= lastHour && h < 24; h++) {
+            double hourCost = 0;
+            if (costStack != null) {
+                for (float[] one : costStack) {
+                    if (h < one.length) {
+                        hourCost += one[h];
+                    }
+                }
+            }
+            if (hourCost > 1e-7) {
+                activeHours++;
+            }
+        }
+        hint.append("时均 ¥").append(Fmt.money2(stat.cost / Math.max(1, activeHours))).append("/时");
         if (!selected.isEmpty()) {
             hint.append(" · 已选 ").append(selected.size()).append(" 项");
         } else {
