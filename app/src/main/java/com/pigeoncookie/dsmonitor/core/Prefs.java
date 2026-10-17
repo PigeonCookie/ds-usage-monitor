@@ -28,19 +28,42 @@ public final class Prefs {
     }
 
     public static String apiKey(Context c) {
-        return sp(c).getString("api_key", "");
+        return secret(c, "api_key");
     }
 
     public static void setApiKey(Context c, String v) {
-        sp(c).edit().putString("api_key", v == null ? "" : v.trim()).apply();
+        putSecret(c, "api_key", v);
     }
 
     public static String userToken(Context c) {
-        return sp(c).getString("user_token", "");
+        return secret(c, "user_token");
     }
 
     public static void setUserToken(Context c, String v) {
-        sp(c).edit().putString("user_token", v == null ? "" : v.trim()).apply();
+        putSecret(c, "user_token", v);
+    }
+
+    /**
+     * Reads a secret through {@link SecretBox}; a plain-text value written by an older build is
+     * re-saved encrypted on the spot, so existing users migrate without touching anything.
+     */
+    private static String secret(Context c, String key) {
+        String raw = sp(c).getString(key, "");
+        if (raw == null || raw.isEmpty()) {
+            return "";
+        }
+        if (raw.startsWith(SecretBox.PREFIX)) {
+            String plain = SecretBox.open(raw.substring(SecretBox.PREFIX.length()));
+            return plain == null ? "" : plain;
+        }
+        putSecret(c, key, raw);
+        return raw.trim();
+    }
+
+    private static void putSecret(Context c, String key, String v) {
+        String clean = v == null ? "" : v.trim();
+        String sealed = SecretBox.seal(clean);
+        sp(c).edit().putString(key, sealed == null ? clean : SecretBox.PREFIX + sealed).apply();
     }
 
     public static String nickname(Context c) {
