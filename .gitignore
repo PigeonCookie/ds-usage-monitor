@@ -32,3 +32,6 @@ Desktop.ini
 # python caches
 __pycache__/
 *.pyc
+
+# build logs
+.build-log.txt
