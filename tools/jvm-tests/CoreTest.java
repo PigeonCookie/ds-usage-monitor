@@ -22,6 +22,7 @@ public final class CoreTest {
         testExportTokensAndKeys();
         testPriceBasedTokenKinds();
         testHourlyCacheRoundTrip();
+        testHourlyApproxFlag();
         testCsvParsing();
         testExportZip();
         testFormatting();
@@ -263,6 +264,35 @@ public final class CoreTest {
                 "per-key hit tokens survive");
         eq(205834d, back.get(12).item(1, "cookie", com.pigeoncookie.dsmonitor.data.HourlyCache.HIT),
                 "each hour keeps its own split");
+    }
+
+    /** approx 标记（第 10 个字段）必须能往返；旧格式（没有该字段）默认 false。 */
+    private static void testHourlyApproxFlag() {
+        java.util.LinkedHashMap<Integer, com.pigeoncookie.dsmonitor.data.HourlyCache.Hour> map =
+                new java.util.LinkedHashMap<>();
+        com.pigeoncookie.dsmonitor.data.HourlyCache.Hour h =
+                new com.pigeoncookie.dsmonitor.data.HourlyCache.Hour();
+        h.hour = 3;
+        h.cost = 0.42d;
+        h.tokens = 1234;
+        h.requests = 7;
+        h.hitTokens = 1000;
+        h.missTokens = 200;
+        h.outTokens = 34;
+        h.approx = true;
+        map.put(3, h);
+
+        java.util.LinkedHashMap<Integer, com.pigeoncookie.dsmonitor.data.HourlyCache.Hour> back =
+                com.pigeoncookie.dsmonitor.data.HourlyCache.parse(
+                        com.pigeoncookie.dsmonitor.data.HourlyCache.format(map));
+        eq(1d, back.containsKey(3) ? 1d : 0d, "approx: hour survives the round trip");
+        eq(1d, back.get(3).approx ? 1d : 0d, "approx: flag survives the round trip");
+        eq(1234d, back.get(3).tokens, "approx: totals intact");
+
+        java.util.LinkedHashMap<Integer, com.pigeoncookie.dsmonitor.data.HourlyCache.Hour> legacy =
+                com.pigeoncookie.dsmonitor.data.HourlyCache.parse("4|total||0.1|10|1|7|2|1\n");
+        eq(1d, legacy.containsKey(4) ? 1d : 0d, "legacy: hour parsed");
+        eq(0d, legacy.get(4).approx ? 1d : 0d, "legacy: approx defaults to false");
     }
 
     private static void testFormatting() {
