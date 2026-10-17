@@ -43,6 +43,8 @@ public final class SampleStore {
     private static final String FILE_NAME = "samples.jsonl";
     private static final long KEEP_MS = 15L * 24 * 3600 * 1000;
     private static final int MAX_LINES = 1200;
+    /** Samples older than this are dropped: the cumulative figure stays within a week. */
+    private static final long MAX_AGE_MS = 7L * 24L * 60L * 60L * 1000L;
 
     public static final class Sample {
         public long t;
@@ -121,6 +123,7 @@ public final class SampleStore {
             s.modelStats.putAll(modelStats);
         }
         list.add(s);
+        pruneByAge(list);
         while (list.size() > MAX_LINES) {
             list.remove(0);
         }
@@ -154,6 +157,7 @@ public final class SampleStore {
             }
         }
         list.add(at, s);
+        pruneByAge(list);
         while (list.size() > MAX_LINES) {
             list.remove(0);
         }
@@ -248,6 +252,14 @@ public final class SampleStore {
 
     public static synchronized List<Sample> today(Context c) {
         return samplesOn(c, 0);
+    }
+
+    /** Drops samples older than a week (oldest first, the list is chronological). */
+    private static void pruneByAge(List<Sample> list) {
+        long cutoff = System.currentTimeMillis() - MAX_AGE_MS;
+        while (!list.isEmpty() && list.get(0).t < cutoff) {
+            list.remove(0);
+        }
     }
 
     /** Samples of one local day: {@code dayOffset} 0 = today, -1 = yesterday, … */

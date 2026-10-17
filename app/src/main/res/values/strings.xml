@@ -59,7 +59,7 @@
     <string name="balance_alert">余额预警</string>
     <string name="balance_alert_threshold">预警阈值（CNY）</string>
     <string name="hourly_sampling">后台自动检查</string>
-    <string name="hourly_sampling_desc">后台常开：每 15 分钟记录一次本机用量并检查余额；余额预警开关只决定要不要发通知</string>
+    <string name="hourly_sampling_desc">后台常开：每 15 分钟检查一次余额（预警开关只决定发不发通知）；每次刷新用量时记一条本机采样，最多保留 7 天</string>
     <string name="about_section">关于</string>
     <string name="about_body">本应用为第三方本地工具，与 DeepSeek 官方无关联。\n余额来自官方接口 api.deepseek.com/user/balance；用量明细来自 platform.deepseek.com 的用量接口，需要在「我的」中填入平台 User Token。\n所有密钥仅保存在本机应用私有目录，不会上传到任何第三方服务器。</string>
     <string name="token_help">获取方式：浏览器登录 platform.deepseek.com → 打开用量页 → F12 → Network → 找到 usage/cost 请求 → 复制 Authorization 头中的 Bearer 之后的内容。</string>
