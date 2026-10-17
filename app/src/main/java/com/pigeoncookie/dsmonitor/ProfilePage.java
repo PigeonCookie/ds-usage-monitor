@@ -138,22 +138,11 @@ public class ProfilePage extends Page {
                 }
             }
         });
-        swSampling.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (binding) {
-                    return;
-                }
-                Prefs.setHourlySampling(host, isChecked);
-                if (isChecked) {
-                    SampleJobService.schedule(host);
-                    host.toast("已开启后台用量采样（每 15 分钟）");
-                } else {
-                    SampleJobService.cancel(host);
-                    host.toast("已关闭后台采样");
-                }
-            }
-        });
+        // 采样已并入余额预警：后台固定运行，界面不再提供开关
+        Prefs.setHourlySampling(host, true);
+        swSampling.setChecked(true);
+        swSampling.setVisibility(View.GONE);
+        SampleJobService.schedule(host);
         editThreshold.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
