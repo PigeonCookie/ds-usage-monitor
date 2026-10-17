@@ -1146,12 +1146,21 @@ public class UsagePage extends Page {
 
         int samples = SampleStore.today(host).size();
         StringBuilder hint = new StringBuilder();
-        // 今天 / 昨天：总缓存命中率 = 命中缓存输入 ÷ (命中 + 未命中缓存输入)
-        // hitTokens / missTokens 在计算 Token 拆分时已经取过，这里直接复用
+        // 命中率与图表同源：直接累加"画图用的那份数组"，避免和日合计接口口径不一致
+        double sumHit = 0;
+        double sumMiss = 0;
+        if (tokenStack != null && tokenStack.length >= 3) {
+            for (float v : tokenStack[2]) {
+                sumHit += v;
+            }
+            for (float v : tokenStack[1]) {
+                sumMiss += v;
+            }
+        }
         hint.append("缓存命中率 ");
-        if (hitTokens + missTokens > 0) {
+        if (sumHit + sumMiss > 0) {
             hint.append(String.format(java.util.Locale.US, "%.1f%%",
-                    hitTokens * 100.0 / (hitTokens + missTokens)));
+                    sumHit * 100.0 / (sumHit + sumMiss)));
         } else {
             hint.append("—");
         }
