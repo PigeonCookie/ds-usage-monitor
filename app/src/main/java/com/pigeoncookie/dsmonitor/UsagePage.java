@@ -1686,10 +1686,30 @@ public class UsagePage extends Page {
         if (data != null && spec.dates != null) {
             for (String date : spec.dates) {
                 UsageData.Day d = data.days.get(date);
+                // 与今天/昨天一致：按当前选中的 Key / 模型统计（未选则用当天全部）
+                double dayCost = 0;
+                double dayTokens = 0;
+                double dayRequests = 0;
+                if (d != null) {
+                    if (selected.isEmpty()) {
+                        dayCost = d.total.cost;
+                        dayTokens = d.total.tokens;
+                        dayRequests = d.total.requests;
+                    } else {
+                        for (String item : selected) {
+                            UsageData.Slice s = d.dimOrNull(dim, item);
+                            if (s != null) {
+                                dayCost += s.cost;
+                                dayTokens += s.tokens;
+                                dayRequests += s.requests;
+                            }
+                        }
+                    }
+                }
                 sb.append(date).append(',')
-                        .append(Fmt.money2(d == null ? 0 : d.total.cost)).append(',')
-                        .append(d == null ? 0 : d.total.tokens).append(',')
-                        .append(d == null ? 0 : d.total.requests);
+                        .append(Fmt.money2(dayCost)).append(',')
+                        .append((long) dayTokens).append(',')
+                        .append((long) dayRequests);
                 for (String item : effective) {
                     UsageData.Slice s = d == null ? null : d.dimOrNull(dim, item);
                     sb.append(',').append(Fmt.money2(s == null ? 0 : s.cost));
