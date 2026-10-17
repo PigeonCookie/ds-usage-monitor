@@ -1633,15 +1633,45 @@ public class UsagePage extends Page {
         StringBuilder sb = new StringBuilder();
         UsageData data = UsageRepo.data;
         if (isHourlyView()) {
-            sb.append("hour,cost_cny,tokens,requests\n");
-            float[] cost = toFloats(SampleStore.hourly(host, SampleStore.FIELD_COST));
-            float[] tokens = toFloats(SampleStore.hourly(host, SampleStore.FIELD_TOKENS));
-            float[] requests = toFloats(SampleStore.hourly(host, SampleStore.FIELD_REQUESTS));
+            // 与图表同源：直接读当前日期（今天/昨天）的平台逐时缓存，按当前筛选累加
+            sb.append("hour,cost_cny,tokens,requests,hit,miss,out\n");
+            java.util.LinkedHashMap<Integer, com.pigeoncookie.dsmonitor.data.HourlyCache.Hour> cache =
+                    viewDayIso != null
+                            ? com.pigeoncookie.dsmonitor.data.HourlyCache.load(host, viewDayIso) : null;
             for (int i = 0; i < 24; i++) {
+                double cost = 0;
+                double tokens = 0;
+                double requests = 0;
+                double hit = 0;
+                double miss = 0;
+                double out = 0;
+                com.pigeoncookie.dsmonitor.data.HourlyCache.Hour hour = cache == null ? null : cache.get(i);
+                if (hour != null) {
+                    if (selected.isEmpty()) {
+                        cost = hour.cost;
+                        tokens = hour.tokens;
+                        requests = hour.requests;
+                        hit = hour.hitTokens;
+                        miss = hour.missTokens;
+                        out = hour.outTokens;
+                    } else {
+                        for (String item : selected) {
+                            cost += hour.item(dim, item, com.pigeoncookie.dsmonitor.data.HourlyCache.COST);
+                            tokens += hour.item(dim, item, com.pigeoncookie.dsmonitor.data.HourlyCache.TOKENS);
+                            requests += hour.item(dim, item, com.pigeoncookie.dsmonitor.data.HourlyCache.REQUESTS);
+                            hit += hour.item(dim, item, com.pigeoncookie.dsmonitor.data.HourlyCache.HIT);
+                            miss += hour.item(dim, item, com.pigeoncookie.dsmonitor.data.HourlyCache.MISS);
+                            out += hour.item(dim, item, com.pigeoncookie.dsmonitor.data.HourlyCache.OUT);
+                        }
+                    }
+                }
                 sb.append(Fmt.hourLabel(i)).append(',')
-                        .append(Fmt.money2(cost[i])).append(',')
-                        .append((long) tokens[i]).append(',')
-                        .append((long) requests[i]).append('\n');
+                        .append(Fmt.money2(cost)).append(',')
+                        .append((long) tokens).append(',')
+                        .append((long) requests).append(',')
+                        .append((long) hit).append(',')
+                        .append((long) miss).append(',')
+                        .append((long) out).append('\n');
             }
             return sb.toString();
         }
