@@ -135,7 +135,9 @@ public final class TodayBackfill {
                 changed = true;
                 budget--;
             } catch (DeepSeekClient.ApiException e) {
-                break;
+                // 某一小时取失败不要影响其它小时（否则缓存会留下"半天空洞"）
+                android.util.Log.w("DSMonitor", "fill hour=" + h + " failed: " + e.getMessage());
+                continue;
             }
         }
         if (changed) {

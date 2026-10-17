@@ -626,6 +626,11 @@ public class UsagePage extends Page {
         return shortName(list.get(0)) + " 等 " + list.size() + " 项";
     }
 
+    /** 今天与昨天都是逐小时视图（导出的列、图表桶都按小时）。 */
+    private boolean isHourlyView() {
+        return range == RANGE_TODAY || range == RANGE_YESTERDAY;
+    }
+
     private String rangeLabel() {
         switch (range) {
             case RANGE_YESTERDAY:
@@ -880,7 +885,7 @@ public class UsagePage extends Page {
                     back.get(Calendar.MONTH) + 1, back.get(Calendar.DAY_OF_MONTH));
             viewRunningHour = 23;
         }
-        if (range == RANGE_TODAY || range == RANGE_YESTERDAY) {
+        if (isHourlyView() || range == RANGE_YESTERDAY) {
             renderToday(data);
         } else {
             renderDays(data);
@@ -1342,7 +1347,7 @@ public class UsagePage extends Page {
     /** Items of the active dimension present in the current range, biggest cost first. */
     private List<String> availableItems(UsageData data) {
         List<String> out = new ArrayList<>();
-        if (range == RANGE_TODAY) {
+        if (isHourlyView()) {
             for (Map.Entry<String, Double> e : SampleStore.todayItemTotals(host, dim)) {
                 out.add(e.getKey());
             }
@@ -1618,7 +1623,7 @@ public class UsagePage extends Page {
     private String buildCsv() {
         StringBuilder sb = new StringBuilder();
         UsageData data = UsageRepo.data;
-        if (range == RANGE_TODAY) {
+        if (isHourlyView()) {
             sb.append("hour,cost_cny,tokens,requests\n");
             float[] cost = toFloats(SampleStore.hourly(host, SampleStore.FIELD_COST));
             float[] tokens = toFloats(SampleStore.hourly(host, SampleStore.FIELD_TOKENS));
