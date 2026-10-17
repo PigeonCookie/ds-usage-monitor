@@ -141,7 +141,12 @@ public class ProfilePage extends Page {
         // 采样已并入余额预警：后台固定运行，界面不再提供开关
         Prefs.setHourlySampling(host, true);
         swSampling.setChecked(true);
-        swSampling.setVisibility(View.GONE);
+        // 整行隐藏（切换键的父容器就是"标题 + 说明 + 开关"这一行）
+        if (swSampling.getParent() instanceof View) {
+            ((View) swSampling.getParent()).setVisibility(View.GONE);
+        } else {
+            swSampling.setVisibility(View.GONE);
+        }
         SampleJobService.schedule(host);
         editThreshold.addTextChangedListener(new TextWatcher() {
             @Override
