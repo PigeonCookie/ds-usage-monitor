@@ -237,10 +237,7 @@ public class UsagePage extends Page {
                 int[] colors = tokenColors();
                 if (tokenStack != null && tokenStack.length >= 3) {
                     // 堆叠顺序是 [输出, 未命中, 命中]，弹窗按 命中/未命中/输出 读回去
-                    if (approxHours != null && index < approxHours.length && approxHours[index]) {
-                tip.add("本机未采全，以官网为准", "", colors[2]);
-            }
-            tip.add("输入（命中缓存）", Fmt.group((long) tokenStack[2][index]), colors[2]);
+                    tip.add("输入（命中缓存）", Fmt.group((long) tokenStack[2][index]), colors[2]);
                     tip.add("输入（未命中缓存）", Fmt.group((long) tokenStack[1][index]), colors[1]);
                     tip.add("输出", Fmt.group((long) tokenStack[0][index]), colors[0]);
                 } else {
@@ -969,14 +966,7 @@ public class UsagePage extends Page {
         java.util.LinkedHashMap<Integer, HourlyCache.Hour> platform =
                 viewDayIso != null && HourlyCache.usable(host, viewDayIso)
                         ? HourlyCache.load(host, viewDayIso) : null;
-        if (platform != null) {
-            approxHours = new boolean[24];
-            for (java.util.Map.Entry<Integer, HourlyCache.Hour> e : platform.entrySet()) {
-                if (e.getKey() >= 0 && e.getKey() < 24) {
-                    approxHours[e.getKey()] = e.getValue().approx;
-                }
-            }
-        }
+        approxHours = null;
         float[][] series = null;
         boolean fromPlatform = false;
         if (platform != null) {
