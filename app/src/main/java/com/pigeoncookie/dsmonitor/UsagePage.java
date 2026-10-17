@@ -1143,8 +1143,15 @@ public class UsagePage extends Page {
 
         int samples = SampleStore.today(host).size();
         StringBuilder hint = new StringBuilder();
-        int hours = range == RANGE_YESTERDAY ? 24 : Math.max(1, viewRunningHour + 1);
-        hint.append("时均 ¥").append(Fmt.money2(stat.cost / hours)).append("/时");
+        // 今天 / 昨天：总缓存命中率 = 命中缓存输入 ÷ (命中 + 未命中缓存输入)
+        // hitTokens / missTokens 在计算 Token 拆分时已经取过，这里直接复用
+        hint.append("缓存命中率 ");
+        if (hitTokens + missTokens > 0) {
+            hint.append(String.format(java.util.Locale.US, "%.1f%%",
+                    hitTokens * 100.0 / (hitTokens + missTokens)));
+        } else {
+            hint.append("—");
+        }
         if (!selected.isEmpty()) {
             hint.append(" · 已选 ").append(selected.size()).append(" 项");
         } else {
