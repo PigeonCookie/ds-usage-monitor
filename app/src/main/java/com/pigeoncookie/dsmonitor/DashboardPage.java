@@ -279,8 +279,8 @@ public class DashboardPage extends Page {
                 : "数据来源：官方余额接口 + 平台用量接口（platform.deepseek.com）");
         long at = Prefs.lastBalanceAt(host);
         updatedLine.setText(at > 0 ? "最近刷新：" + Fmt.dateTime(at) : "尚未刷新");
-        // 图表已完全以官网为准，采样条数对用户没有意义，隐藏这一行（保留 View 以免动布局）
-        sampleLine.setVisibility(View.GONE);
+        sampleLine.setText("本机采样：今日 " + SampleStore.today(host).size() + " 条 · 累计 "
+                + SampleStore.count(host) + " 条");
         if (Prefs.offline(host)) {
             balanceMeta.setText("⚠ 离线：以下为 " + (at > 0 ? Fmt.dateTime(at) : "上次") + " 的数据");
         }
