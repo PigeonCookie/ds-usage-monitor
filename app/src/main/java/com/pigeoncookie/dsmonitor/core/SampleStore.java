@@ -358,7 +358,9 @@ public final class SampleStore {
                     delta = v; // day rolled over / counter reset
                 }
                 if (delta != 0) {
-                    spread(out, prevT == 0 ? midnightOf(s.t) : prevT, s.t, delta);
+                    // 首个采样之前的时段本来就没有观测值，绝不能把这段增量摊到 0 点之后，
+                    // 否则会凭空造出凌晨几个小时的小柱子（官网那几小时其实是 0）。
+                    spread(out, prevT == 0 ? s.t : prevT, s.t, delta);
                 }
                 prev[k] = v;
             }
