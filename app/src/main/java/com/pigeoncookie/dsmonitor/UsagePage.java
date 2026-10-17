@@ -1678,11 +1678,7 @@ public class UsagePage extends Page {
         Spec spec = spec();
         List<String> effective = effectiveItems(matchedItems(
                 availableItems(data == null ? new UsageData() : data)));
-        sb.append("date,cost_cny,tokens,requests");
-        for (String item : effective) {
-            sb.append(',').append(csvCell(item));
-        }
-        sb.append('\n');
+        sb.append("date,cost_cny,tokens,requests,hit,miss,out\n");
         if (data != null && spec.dates != null) {
             for (String date : spec.dates) {
                 UsageData.Day d = data.days.get(date);
@@ -1690,11 +1686,17 @@ public class UsagePage extends Page {
                 double dayCost = 0;
                 double dayTokens = 0;
                 double dayRequests = 0;
+                double dayHit = 0;
+                double dayMiss = 0;
+                double dayOut = 0;
                 if (d != null) {
                     if (selected.isEmpty()) {
                         dayCost = d.total.cost;
                         dayTokens = d.total.tokens;
                         dayRequests = d.total.requests;
+                        dayHit = d.total.hitTokens;
+                        dayMiss = d.total.missTokens;
+                        dayOut = d.total.outTokens;
                     } else {
                         for (String item : selected) {
                             UsageData.Slice s = d.dimOrNull(dim, item);
@@ -1702,6 +1704,9 @@ public class UsagePage extends Page {
                                 dayCost += s.cost;
                                 dayTokens += s.tokens;
                                 dayRequests += s.requests;
+                                dayHit += s.hitTokens;
+                                dayMiss += s.missTokens;
+                                dayOut += s.outTokens;
                             }
                         }
                     }
@@ -1709,12 +1714,10 @@ public class UsagePage extends Page {
                 sb.append(date).append(',')
                         .append(Fmt.money2(dayCost)).append(',')
                         .append((long) dayTokens).append(',')
-                        .append((long) dayRequests);
-                for (String item : effective) {
-                    UsageData.Slice s = d == null ? null : d.dimOrNull(dim, item);
-                    sb.append(',').append(Fmt.money2(s == null ? 0 : s.cost));
-                }
-                sb.append('\n');
+                        .append((long) dayRequests).append(',')
+                        .append((long) dayHit).append(',')
+                        .append((long) dayMiss).append(',')
+                        .append((long) dayOut).append('\n');
             }
         }
         return sb.toString();
