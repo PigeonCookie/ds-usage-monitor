@@ -343,8 +343,8 @@ public class UsagePage extends Page {
             finished += value;
             any = true;
         }
-        if (!any || finished <= 0) {
-            // nothing usable for the selected items — fall back to the sampled history
+        if (!any) {
+            // 只有"连一个小时都没有"才算不可用；有缓存就一律以官网为准
             return null;
         }
         out[currentHour] = (float) Math.max(0, dayTotal - finished);
@@ -938,6 +938,7 @@ public class UsagePage extends Page {
 
     private void renderToday(UsageData data) {
         List<String> available = availableItems(data);
+        pruneSelection(available);
         List<String> matched = matchedItems(available);
         List<String> effective = effectiveItems(matched);
         UsageData.Slice stat = sumOf(data, matched, true);
@@ -1169,6 +1170,28 @@ public class UsagePage extends Page {
         java.util.Calendar c = java.util.Calendar.getInstance();
         return String.format(java.util.Locale.US, "%02d:%02d",
                 c.get(java.util.Calendar.HOUR_OF_DAY), c.get(java.util.Calendar.MINUTE));
+    }
+
+    /** 当前区间不存在被选中的 Key / 模型时把它去掉，全部失效就回到"全部"。 */
+    private void pruneSelection(List<String> available) {
+        if (selected.isEmpty()) {
+            return;
+        }
+        boolean removed = selected.retainAll(available);
+        if (removed) {
+            if (selected.isEmpty()) {
+                Prefs.setUsageSelection(host, dim, "");
+            } else {
+                StringBuilder sb = new StringBuilder();
+                for (String item : selected) {
+                    if (sb.length() > 0) {
+                        sb.append('\n');
+                    }
+                    sb.append(item);
+                }
+                Prefs.setUsageSelection(host, dim, sb.toString());
+            }
+        }
     }
 
     private void renderDays(UsageData data) {
@@ -1490,6 +1513,8 @@ public class UsagePage extends Page {
                             return;
                         }
                         if (ranges[which] != RANGE_CUSTOM) {
+                            customFrom = null;
+                            customTo = null;
                             range = ranges[which];
                             viewDayOffset = range == RANGE_YESTERDAY ? -1 : 0;
                             persist();
