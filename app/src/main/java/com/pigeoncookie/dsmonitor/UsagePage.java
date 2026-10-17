@@ -1033,7 +1033,7 @@ public class UsagePage extends Page {
                 }
             }
         }
-        if (series == null && perItem && !effective.isEmpty()) {
+        if (series == null && platform == null && perItem && !effective.isEmpty()) {
             series = new float[effective.size()][24];
             for (int i = 0; i < effective.size(); i++) {
                 series[i] = toFloats(SampleStore.hourlyFor(host, viewDayOffset, dim,
@@ -1041,7 +1041,11 @@ public class UsagePage extends Page {
             }
         }
         boolean fellBack = false;
-        if (series == null || allZero(series)) {
+        if (series == null && platform != null) {
+            // 官网这一屏没有逐时数据：宁可不画，也不拿采样估算顶替
+            series = new float[][]{new float[24]};
+        }
+        if (platform == null && (series == null || allZero(series))) {
             series = new float[][]{toFloats(SampleStore.hourlyFor(host, viewDayOffset, dim, null,
                     SampleStore.KIND_COST))};
             fellBack = true;
@@ -1066,8 +1070,9 @@ public class UsagePage extends Page {
         float[] platformRequests = platform == null ? null
                 : platformHours(platform, dim, effective, HourlyCache.REQUESTS, stat.requests);
         reqValues = platformRequests != null ? platformRequests
+                : (platform != null ? new float[24]
                 : toFloats(SampleStore.hourlyFor(host, viewDayOffset, dim, perItem ? matched : null,
-                SampleStore.KIND_REQUESTS));
+                SampleStore.KIND_REQUESTS)));
 
         // 命中/未命中/输出 的比例取自当日合计（导出接口，口径与官网一致），逐时总量取自本机采样；
         // 这样即使历史采样是旧规则写入的，拆分也会立刻正确
@@ -1081,6 +1086,8 @@ public class UsagePage extends Page {
         float[] hourlyTokens;
         if (platformTokens != null) {
             hourlyTokens = platformTokens;
+        } else if (platform != null) {
+            hourlyTokens = new float[24];
         } else {
             hourlyTokens = toFloats(SampleStore.hourlyFor(host, viewDayOffset, dim,
                     perItem ? matched : null, SampleStore.KIND_TOKENS));
@@ -1165,6 +1172,9 @@ public class UsagePage extends Page {
         }
         if (calibrated) {
             hint.append(" · 逐时已按今日合计校准");
+        }
+        if (platform == null) {
+            hint.append(" · 官网逐时未取到，请刷新重试");
         }
         hint.append(" · 更新于 ").append(clock());
         usageHint.setText(hint.toString());
