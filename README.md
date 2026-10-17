@@ -15,7 +15,7 @@
 
 | 余额 | 用量 | 我的 |
 | --- | --- | --- |
-| ![余额](preview/preview-dashboard.png) | ![用量](preview/preview-usage-2.png) | ![我的](preview/preview-profile.png) |
+| ![余额](preview/preview-dashboard-2.png) | ![用量](preview/preview-usage-3.png) | ![我的](preview/preview-profile-2.png) |
 
 点柱子弹出该时段明细（Tokens 会拆成 输入（命中缓存）/ 输入（未命中缓存）/ 输出）：
 
