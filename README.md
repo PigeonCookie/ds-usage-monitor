@@ -59,6 +59,8 @@
 
 ## 2. 数据来源与口径
 
+- API Key 与平台 User Token 使用 **Android Keystore 的 AES-GCM** 加密后存储在应用私有目录；密钥不可导出（支持时由 TEE 保管），**连 App 自己都读不出密钥本体**。旧版本明文保存的值在首次读取时自动加密迁移，无需重新粘贴。
+
 | 数据 | 接口 | 认证 |
 | --- | --- | --- |
 | 充值 / 赠送 / 总余额 | `GET https://api.deepseek.com/user/balance` | `Authorization: Bearer <API Key>` |
