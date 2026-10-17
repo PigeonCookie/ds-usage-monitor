@@ -57,6 +57,9 @@ public final class Prefs {
             return plain == null ? "" : plain;
         }
         putSecret(c, key, raw);
+        // SharedPreferences 会把上一版文件留成 .bak：再写一次把那份也轮换成密文，
+        // 避免旧明文以备份文件的形式继续躺在应用私有目录里。
+        sp(c).edit().putLong("secret_migrated_at", System.currentTimeMillis()).apply();
         return raw.trim();
     }
 
