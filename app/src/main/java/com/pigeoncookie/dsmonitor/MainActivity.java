@@ -70,10 +70,14 @@ public class MainActivity extends Activity implements PageHost {
         btnReload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // 只刷新当前页；另一页的数据在切过去时由 onShown() 按共享数据重绘
-                Page page = pages[current];
-                if (page != null) {
-                    page.refresh();
+                // 点任意一页的重载：两页的数据都刷新。
+                // 不可见的那一页也会把新数据写进自己的 View，切过去立刻就是新的（不再二次请求）。
+                for (int i = 0; i < pages.length; i++) {
+                    Page page = pages[i];
+                    if (page instanceof com.pigeoncookie.dsmonitor.DashboardPage
+                            || page instanceof com.pigeoncookie.dsmonitor.UsagePage) {
+                        page.refresh();
+                    }
                 }
             }
         });
