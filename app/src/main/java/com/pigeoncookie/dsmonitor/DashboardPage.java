@@ -267,7 +267,10 @@ public class DashboardPage extends Page {
     private void appendTodayCost(Balance b) {
         double today = 0;
         String iso = DeepSeekClient.isoToday();
-        if (UsageRepo.todayCostAll >= 0 && iso.equals(UsageRepo.todayCostDay)) {
+        // 最可靠：直接用用量页那份数据对象跑同一句 sumAll()（就是卡片上那个数）
+        if (UsageRepo.data != null) {
+            today = UsageRepo.data.sumAll().cost;
+        } else if (UsageRepo.todayCostAll >= 0 && iso.equals(UsageRepo.todayCostDay)) {
             // 用量页算过：直接复用那个数，两处一定一致
             today = UsageRepo.todayCostAll;
         } else if (freshTodayCost >= 0) {
