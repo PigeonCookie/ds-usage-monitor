@@ -28,6 +28,8 @@ public class DashboardPage extends Page {
     private final TextView balanceMeta;
     private final TextView cumulativeMeta;
     private final com.pigeoncookie.dsmonitor.MoneyText todayCost;
+    /** 刚才那次平台导出拿到的“今日全部 Key 合计”，-1 表示本次没取到。 */
+    private double freshTodayCost = -1;
     /** 今日花费只增不减：记住已显示的日期，跨天才允许回落。 */
     private String todayFloorDay = "";
     private final TextView sourceLine;
@@ -111,11 +113,13 @@ public class DashboardPage extends Page {
                         error = e.getMessage();
                         Prefs.setOffline(host, true);
                     }
+                    double platformToday = -1;
                     if (!token.isEmpty()) {
                         try {
                             long[] window = DeepSeekClient.todayWindow();
                             UsageData today = DeepSeekClient.fetchExportRange(token, window[0], window[1]);
                             UsageData.Slice total = today.sumAll();
+                            platformToday = total.cost;
                             SampleStore.append(host, total.cost, total.tokens, total.requests,
                                     total.hitTokens, total.missTokens, total.outTokens,
                                     today.itemStatsAll(UsageData.DIM_KEY),
@@ -126,10 +130,14 @@ public class DashboardPage extends Page {
                     }
                     final Balance result = balance;
                     final String failure = error;
+                    final double todayCost = platformToday;
                     Bg.ui(new Runnable() {
                         @Override
                         public void run() {
                             host.endLoad();
+                            if (todayCost >= 0) {
+                                freshTodayCost = todayCost;
+                            }
                             if (result != null) {
                                 applyBalance(result);
                             } else if (failure != null) {
@@ -252,6 +260,10 @@ public class DashboardPage extends Page {
     private void appendTodayCost(Balance b) {
         double today = 0;
         String iso = DeepSeekClient.isoToday();
+        if (freshTodayCost >= 0) {
+            // 本次刷新刚拉到的“今日全部 Key 合计”，与用量页的卡片同源
+            today = freshTodayCost;
+        }
         // 与图表同源：今日所有 API Key 的平台逐时合计（不是当前筛选，也不是缓存快照）
         try {
             java.util.LinkedHashMap<Integer, com.pigeoncookie.dsmonitor.data.HourlyCache.Hour> hours =
