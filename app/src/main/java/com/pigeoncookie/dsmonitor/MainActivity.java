@@ -70,21 +70,10 @@ public class MainActivity extends Activity implements PageHost {
         btnReload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // 点一次重载：余额页与用量页的数据一起刷新（两页共享同一套平台数据）
-                boolean any = false;
-                for (int i = 0; i < pages.length; i++) {
-                    Page page = pages[i];
-                    if (page == null) {
-                        continue;
-                    }
-                    if (page instanceof com.pigeoncookie.dsmonitor.DashboardPage
-                            || page instanceof com.pigeoncookie.dsmonitor.UsagePage) {
-                        page.refresh();
-                        any = true;
-                    }
-                }
-                if (!any && pages[current] != null) {
-                    pages[current].refresh();
+                // 只刷新当前页；另一页的数据在切过去时由 onShown() 按共享数据重绘
+                Page page = pages[current];
+                if (page != null) {
+                    page.refresh();
                 }
             }
         });
