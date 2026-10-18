@@ -73,6 +73,12 @@ public class MainActivity extends Activity implements PageHost {
                 Page page = pages[current];
                 if (page != null) {
                     page.refresh();
+                    // 另一页也按共享数据重绘一次，避免它停在旧数字上、切换时才“跳”一下
+                    for (int i = 0; i < pages.length; i++) {
+                        if (i != current && pages[i] != null) {
+                            pages[i].onShown();
+                        }
+                    }
                 }
             }
         });
