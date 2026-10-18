@@ -4,9 +4,9 @@
 [![build](https://github.com/PigeonCookie/ds-usage-monitor/actions/workflows/build.yml/badge.svg)](https://github.com/PigeonCookie/ds-usage-monitor/actions/workflows/build.yml)
 -->
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![size](https://img.shields.io/badge/APK-380%20KB-brightgreen)
+![size](https://img.shields.io/badge/APK-384%20KB-brightgreen)
 
-一个**轻量**的安卓用量监测 App：APK 约 **380 KB**，纯 Android framework 实现，**没有 AndroidX、没有 Gradle、没有任何第三方依赖**。
+一个**轻量**的安卓用量监测 App：APK 约 **384 KB**，纯 Android framework 实现，**没有 AndroidX、没有 Gradle、没有任何第三方依赖**。
 界面参照 DeepSeek 开放平台的暗色风格，底部三个栏目：**余额 / 用量 / 我的**。所有密钥只存在本机，请求只发往 `api.deepseek.com` 与 `platform.deepseek.com`。
 
 > **声明**：本项目是 **DeepSeek vibe coding** 的产物 —— 代码、界面与文档由 DeepSeek 模型生成，作者负责审阅、测试与发布；构建在本地用标准 Android 工具链完成（`aapt2` / `javac` / `d8` / `zipalign` / `apksigner`），**不是 DeepSeek 官方编译或发布的软件**，与 DeepSeek 官方无隶属关系。
@@ -51,7 +51,7 @@
 **第三页 · 我的**
 - 头像（相册选择，自动裁剪压缩）与昵称；**DeepSeek API Key**（明文/密文切换）与**平台 User Token** 输入，`保存` 与 `测试连接`（分别探测两个接口，并回显今日数据、导出字段明细与平台逐时）。
 - **日间 / 夜间 / 跟随系统**：切换后停留在当前页（标签页也会记住）。
-- 余额预警（阈值 + 开关，默认关闭，只控制是否发通知）；后台每 15 分钟自动检查，刷新用量时记一条本机采样（最多保留 7 天）。
+- 首页两个 ⓘ 可点开说明：充值余额 → 官方文档；赠送余额 → 有效期查询页（均以系统浏览器打开）。\n- **累计消费**下方一行小字同时给出**今日花费**，与平台累计并列。\n- 余额预警（阈值 + 开关，默认关闭，只控制是否发通知）；后台每 15 分钟自动检查，刷新用量时记一条本机采样（最多保留 7 天）。
 - **自定义 User-Agent**：长按「关于」里的版本行即可填写（留空=内置默认）。平台哪天加了 UA 校验，你可以直接从浏览器复制一个真实 UA 填进去，不必等新版本。
 - 关于卡片：内嵌 logo、版本、数据来源与隐私说明。
 
