@@ -118,9 +118,14 @@ public class DashboardPage extends Page {
                         try {
                             long[] window = DeepSeekClient.todayWindow();
                             UsageData today = DeepSeekClient.fetchExportRange(token, window[0], window[1]);
-                            // 用“当天合计”字段，不能用 sumAll()（那会把 Key 与模型的明细再累加一遍，约 2 倍）
-                            UsageData.Day day = today.days.get(DeepSeekClient.isoToday());
-                            platformToday = day == null ? -1 : day.total.cost;
+                            // 按官网口径：把所有 API Key 的今日消费逐个相加（只走一个维度，不会翻倍）
+                            double sum = 0;
+                            int counted = 0;
+                            for (String keyName : today.itemStatsAll(UsageData.DIM_KEY).keySet()) {
+                                sum += today.sliceAll(UsageData.DIM_KEY, keyName).cost;
+                                counted++;
+                            }
+                            platformToday = counted > 0 ? sum : -1;
                             UsageData.Slice total = today.sumAll();
                             SampleStore.append(host, total.cost, total.tokens, total.requests,
                                     total.hitTokens, total.missTokens, total.outTokens,
