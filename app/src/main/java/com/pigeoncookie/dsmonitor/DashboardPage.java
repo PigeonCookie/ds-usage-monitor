@@ -251,16 +251,29 @@ public class DashboardPage extends Page {
     /** 今日花费单独一行（仿照“总余额”的版式），显示在累计消费金额下方。 */
     private void appendTodayCost(Balance b) {
         double today = 0;
+        String iso = DeepSeekClient.isoToday();
+        // 与图表同源：今日所有 API Key 的平台逐时合计（不是当前筛选，也不是缓存快照）
         try {
-            UsageData data = UsageRepo.data;
-            if (data != null && data.days != null) {
-                UsageData.Day d = data.days.get(DeepSeekClient.isoToday());
-                if (d != null) {
-                    today = d.total.cost;
-                }
+            java.util.LinkedHashMap<Integer, com.pigeoncookie.dsmonitor.data.HourlyCache.Hour> hours =
+                    com.pigeoncookie.dsmonitor.data.HourlyCache.load(host, iso);
+            for (com.pigeoncookie.dsmonitor.data.HourlyCache.Hour hour : hours.values()) {
+                today += hour.cost;
             }
         } catch (Throwable ignored) {
             today = 0;
+        }
+        if (today <= 0) {
+            try {
+                UsageData data = UsageRepo.data;
+                if (data != null && data.days != null) {
+                    UsageData.Day d = data.days.get(iso);
+                    if (d != null) {
+                        today = d.total.cost;
+                    }
+                }
+            } catch (Throwable ignored) {
+                today = 0;
+            }
         }
         // 与累计消费卡片同源：平台当日合计 + 尚未反映到平台的本机实时增量
         double realtime = Math.max(0, Prefs.cumulativeDelta(host));
