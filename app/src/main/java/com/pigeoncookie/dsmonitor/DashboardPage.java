@@ -175,9 +175,14 @@ public class DashboardPage extends Page {
             public void run() {
                 try {
                     final double total = DeepSeekClient.fetchAllTimeCost(token, 36);
-                    // consumption only grows: never overwrite a larger cached value with a partial scan
-                    Prefs.setCumulative(host, Math.max(Prefs.cumulative(host), total), now);
+                    // 对账：以平台为准。平台给多少就是多少，本机实时增量一并清零。
+                    double before = Prefs.cumulative(host);
+                    Prefs.setCumulative(host, total, now);
                     Prefs.setCumulativeDelta(host, 0);
+                    if (Math.abs(before - total) > 0.005d) {
+                        android.util.Log.i("DSMonitor", "累计对账 local=" + before
+                                + " platform=" + total + " diff=" + (before - total));
+                    }
                     Bg.ui(new Runnable() {
                         @Override
                         public void run() {
