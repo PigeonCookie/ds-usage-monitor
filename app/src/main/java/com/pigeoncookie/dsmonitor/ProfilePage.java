@@ -221,7 +221,7 @@ version.setOnLongClickListener(new View.OnLongClickListener() {
                 return true;
             }
         });
-        version.setText("版本 " + versionName() + " (" + versionCode() + ") · 无广告 · 仅本机保存密钥");
+        version.setText("版本 " + versionName() + " · 无广告 · 仅本机保存密钥");
     }
 
     /** Build number; handy to confirm which APK is actually installed. */

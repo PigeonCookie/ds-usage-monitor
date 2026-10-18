@@ -27,6 +27,7 @@ public class DashboardPage extends Page {
     private final TextView badgeAlert;
     private final TextView balanceMeta;
     private final TextView cumulativeMeta;
+    private final TextView todayCost;
     private final TextView sourceLine;
     private final TextView updatedLine;
     private final TextView sampleLine;
@@ -43,6 +44,7 @@ public class DashboardPage extends Page {
         badgeAlert = root.findViewById(R.id.badge_alert);
         balanceMeta = root.findViewById(R.id.balance_meta);
         cumulativeMeta = root.findViewById(R.id.cumulative_meta);
+        todayCost = root.findViewById(R.id.today_cost);
         sourceLine = root.findViewById(R.id.source_line);
         updatedLine = root.findViewById(R.id.updated_line);
         sampleLine = root.findViewById(R.id.sample_line);
@@ -188,6 +190,12 @@ public class DashboardPage extends Page {
             }
         });
         moneyGranted.setAmount(b.granted, !firstRender);
+        // 赠送余额为 0 时整张卡片不显示
+        android.view.View grantedCard = root.findViewById(R.id.card_granted);
+        if (grantedCard != null) {
+            grantedCard.setVisibility(b.granted > 0.0001d
+                    ? android.view.View.VISIBLE : android.view.View.GONE);
+        }
         firstRender = false;
 
         TextView currency = root.findViewById(R.id.currency_total);
@@ -220,14 +228,14 @@ public class DashboardPage extends Page {
         balanceMeta.setText(meta.toString());
 
         applyCumulative();
-        appendTodayCost();
+        appendTodayCost(b);
         updateAlertBadge();
         maybeAlert(b.total);
     }
 
 
-    /** 累计消费那一行小字后面补一个“今日 ¥x”，让当天花销一眼可见。 */
-    private void appendTodayCost() {
+    /** 今日花费单独一行（仿照“总余额”的版式），显示在累计消费金额下方。 */
+    private void appendTodayCost(Balance b) {
         double today = 0;
         try {
             UsageData data = UsageRepo.data;
@@ -238,12 +246,11 @@ public class DashboardPage extends Page {
                 }
             }
         } catch (Throwable ignored) {
-            return;
+            today = 0;
         }
-        if (today <= 0) {
-            return;
+        if (todayCost != null) {
+            todayCost.setText("今日 ¥" + Fmt.money2(Math.max(0, today)) + " " + b.currency);
         }
-        cumulativeMeta.setText(cumulativeMeta.getText() + " · 今日 ¥" + Fmt.money2(today));
     }
 
 

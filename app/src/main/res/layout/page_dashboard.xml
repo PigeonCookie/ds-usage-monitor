@@ -224,6 +224,15 @@ android:id="@+id/info_balance"
             </LinearLayout>
 
             <TextView
+                android:id="@+id/today_cost"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="今日 ¥0.00"
+                android:textColor="@color/ds_text_3"
+                android:textSize="13sp" />
+
+            <TextView
                 android:id="@+id/cumulative_meta"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -264,6 +273,7 @@ android:id="@+id/info_balance"
             </LinearLayout>
 
             <LinearLayout
+            android:id="@+id/card_granted"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
