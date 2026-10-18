@@ -144,6 +144,8 @@ public class DashboardPage extends Page {
                             host.endLoad();
                             if (todayCost >= 0) {
                                 freshTodayCost = todayCost;
+                                // 余额页刚拉到的“今日全部 Key 合计”同样写进共享槽位
+                                Prefs.setTodayCostAll(host, todayCost, DeepSeekClient.isoToday());
                             }
                             if (result != null) {
                                 applyBalance(result);
