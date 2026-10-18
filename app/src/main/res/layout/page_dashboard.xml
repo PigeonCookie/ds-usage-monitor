@@ -63,6 +63,7 @@
                         android:layout_height="13dp"
                         android:layout_marginStart="4dp"
                         android:contentDescription="@null"
+android:id="@+id/info_balance"
                         android:src="@drawable/ic_info"
                         android:tint="@color/ds_text_3" />
 
@@ -257,7 +258,8 @@
                     android:layout_height="13dp"
                     android:layout_marginStart="4dp"
                     android:contentDescription="@null"
-                    android:src="@drawable/ic_info"
+                    android:id="@+id/info_granted"
+                        android:src="@drawable/ic_info"
                     android:tint="@color/ds_text_3" />
             </LinearLayout>
 

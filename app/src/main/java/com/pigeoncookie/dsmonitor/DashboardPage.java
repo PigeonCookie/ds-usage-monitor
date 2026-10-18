@@ -63,6 +63,12 @@ public class DashboardPage extends Page {
             }
         };
         root.findViewById(R.id.btn_alert_setup).setOnClickListener(toProfile);
+        bindInfo(root.findViewById(R.id.info_balance), "充值余额",
+                "调用 API 会消耗余额，如有疑问可以查看官方文档。",
+                "查看文档", "https://static.deepseek.com/faq/index.html?lang=zh#/category/4");
+        bindInfo(root.findViewById(R.id.info_granted), "赠送余额",
+                "赠送余额有有效期，可在这里查看每一笔的有效期。",
+                "查看有效期", "https://platform.deepseek.com/transactions?granted");
         badgeAlert.setOnClickListener(toProfile);
         sourceLine.setOnClickListener(toProfile);
     }
@@ -214,8 +220,61 @@ public class DashboardPage extends Page {
         balanceMeta.setText(meta.toString());
 
         applyCumulative();
+        appendTodayCost();
         updateAlertBadge();
         maybeAlert(b.total);
+    }
+
+
+    /** 累计消费那一行小字后面补一个“今日 ¥x”，让当天花销一眼可见。 */
+    private void appendTodayCost() {
+        double today = 0;
+        try {
+            UsageData data = UsageRepo.data;
+            if (data != null && data.days != null) {
+                UsageData.Day d = data.days.get(DeepSeekClient.isoToday());
+                if (d != null) {
+                    today = d.total.cost;
+                }
+            }
+        } catch (Throwable ignored) {
+            return;
+        }
+        if (today <= 0) {
+            return;
+        }
+        cumulativeMeta.setText(cumulativeMeta.getText() + " · 今日 ¥" + Fmt.money2(today));
+    }
+
+
+    /** 点 ⓘ 弹出说明，并给一个跳官方页面的按钮。 */
+    private void bindInfo(android.view.View view, final String title, final String message,
+                          final String action, final String url) {
+        if (view == null) {
+            return;
+        }
+        view.setOnClickListener(new android.view.View.OnClickListener() {
+            @Override
+            public void onClick(android.view.View v) {
+                new android.app.AlertDialog.Builder(host)
+                        .setTitle(title)
+                        .setMessage(message)
+                        .setPositiveButton(action, (dialog, which) -> openUrl(url))
+                        .setNegativeButton("关闭", null)
+                        .show();
+            }
+        });
+    }
+
+    private void openUrl(String url) {
+        try {
+            android.content.Intent intent = new android.content.Intent(
+                    android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url));
+            intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+            host.startActivity(intent);
+        } catch (Throwable t) {
+            host.toast("没有可用的浏览器");
+        }
     }
 
     private void applyCumulative() {
