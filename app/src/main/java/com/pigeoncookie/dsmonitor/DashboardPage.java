@@ -355,9 +355,10 @@ public class DashboardPage extends Page {
         double displayed = moneyCumulative.shownValue();
         if (!token.isEmpty() && platform >= 0) {
             double value = platform + delta;
-            // 累计消费只增不减：数据回落时保持原值，避免莫名回退
-            if (!Double.isNaN(displayed) && value < displayed) {
-                value = displayed;
+            // 刚和平台对完账（2 秒内）：直接以平台为准，本机实时若“多算了”要立刻撤回
+            boolean justReconciled = System.currentTimeMillis() - Prefs.cumulativeAt(host) < 2000L;
+            if (!justReconciled && !Double.isNaN(displayed) && value < displayed) {
+                value = displayed;   // 平时仍只增不减，避免数字无端回退
             }
             moneyCumulative.setAmount(value, !firstRender);
             cumulativeMeta.setText(delta > 0.004d
