@@ -354,16 +354,9 @@ public class DashboardPage extends Page {
         double delta = Math.max(0, Prefs.cumulativeDelta(host));
         double displayed = moneyCumulative.shownValue();
         if (!token.isEmpty() && platform >= 0) {
-            double value = platform + delta;
-            // 刚和平台对完账（2 秒内）：直接以平台为准，本机实时若“多算了”要立刻撤回
-            boolean justReconciled = System.currentTimeMillis() - Prefs.cumulativeAt(host) < 2000L;
-            if (!justReconciled && !Double.isNaN(displayed) && value < displayed) {
-                value = displayed;   // 平时仍只增不减，避免数字无端回退
-            }
-            moneyCumulative.setAmount(value, !firstRender);
-            cumulativeMeta.setText(delta > 0.004d
-                    ? "平台累计 ¥" + Fmt.money2(platform) + " + 本机实时 ¥" + Fmt.money2(delta)
-                    : "来自平台用量接口，跨月累计");
+            // 一切以平台为准：显示的就是平台累计，不再叠加、也不再用本机实时兜着
+            moneyCumulative.setAmount(platform, !firstRender);
+            cumulativeMeta.setText("来自平台用量接口，跨月累计");
             return;
         }
         double base = Prefs.baseTotal(host);
