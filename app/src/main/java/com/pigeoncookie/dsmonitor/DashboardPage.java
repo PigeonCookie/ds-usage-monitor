@@ -266,31 +266,31 @@ public class DashboardPage extends Page {
     /** 今日花费单独一行（仿照“总余额”的版式），显示在累计消费金额下方。 */
     /** 今天已经花掉多少：优先用量页那份数据（与卡片同源），其次本次刷新拉到的合计。 */
     private double daySpentSoFar() {
-        if (UsageRepo.data != null) {
-            return UsageRepo.data.sumAll().cost;
-        }
-        if (freshTodayCost >= 0) {
-            return freshTodayCost;
-        }
-        return -1;
+        // 只用用量页那份数据：它就是“所有 API Key 今日消费之和”，与卡片完全同一个数
+        return UsageRepo.data != null ? UsageRepo.data.sumAll().cost : -1;
     }
 
     private void appendTodayCost(Balance b) {
-        String iso = DeepSeekClient.isoToday();
-        double shown = moneyCumulative == null ? 0 : moneyCumulative.shownValue();
-        double base = Prefs.cumulativeBase(host);
-        if (!iso.equals(Prefs.cumulativeBaseDay(host)) || base < 0) {
-            // 今天第一次渲染：基线 = 当前累计 − 今天已经花掉的钱，
-            // 否则“今日”会从 0 开始，只剩打开应用之后新增的那一点。
-            double spentToday = daySpentSoFar();
-            if (spentToday < 0) {
-                base = -1;                       // 还拿不到当天花费：先不定基线
-            } else {
-                base = Math.max(0, shown - spentToday);
+        double spent = daySpentSoFar();
+        double realtime = Math.max(0, Prefs.cumulativeDelta(host));
+        double today;
+        if (spent >= 0) {
+            // 直接按官网口径：所有 API Key 今日消费之和 + 尚未反映到平台的本机实时增量
+            today = spent + realtime;
+            if (todayCost != null && !firstRender && today < todayCost.shownValue()) {
+                today = todayCost.shownValue();          // 当天只增不减
+            }
+        } else {
+            // 还没有用量数据（没打开过用量页）：退回“累计 − 基线”的近似算法
+            String iso = DeepSeekClient.isoToday();
+            double shown = moneyCumulative == null ? 0 : moneyCumulative.shownValue();
+            double base = Prefs.cumulativeBase(host);
+            if (!iso.equals(Prefs.cumulativeBaseDay(host)) || base < 0) {
+                base = Math.max(0, shown);
                 Prefs.setCumulativeBase(host, base, iso);
             }
+            today = Math.max(0, shown - base);
         }
-        double today = base < 0 ? Math.max(0, daySpentSoFar()) : Math.max(0, shown - base);
         if (todayCost != null) {
             todayCost.setAmount(today, !firstRender);
         }
