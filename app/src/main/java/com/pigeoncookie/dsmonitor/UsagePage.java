@@ -944,6 +944,11 @@ public class UsagePage extends Page {
         List<String> matched = matchedItems(available);
         List<String> effective = effectiveItems(matched);
         UsageData.Slice stat = sumOf(data, matched, true);
+        // 供余额页复用：今天 + 全部 Key 的合计（与这张卡片完全是同一个数）
+        if (range == RANGE_TODAY && selected.isEmpty()) {
+            UsageRepo.todayCostAll = stat.cost;
+            UsageRepo.todayCostDay = viewDayIso == null ? "" : viewDayIso;
+        }
 
         statCost.setText(Fmt.money(stat.cost));
         statRequests.setText(Fmt.group(stat.requests));

@@ -12,6 +12,9 @@ public final class UsageRepo {
     /** False when only the month endpoints answered, i.e. no per-API-key split available. */
     public static boolean byKeyAvailable;
     public static String error = "";
+    /** “今天 + 全部 Key”的消费合计，由用量页写入，供余额页复用，保证两处数字一致。 */
+    public static double todayCostAll = -1;
+    public static String todayCostDay = "";
 
     private UsageRepo() {
     }
