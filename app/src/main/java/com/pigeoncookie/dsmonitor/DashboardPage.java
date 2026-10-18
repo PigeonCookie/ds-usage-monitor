@@ -275,8 +275,8 @@ public class DashboardPage extends Page {
         double realtime = Math.max(0, Prefs.cumulativeDelta(host));
         double today;
         if (spent >= 0) {
-            // 直接按官网口径：所有 API Key 今日消费之和 + 尚未反映到平台的本机实时增量
-            today = spent + realtime;
+            // 与用量页卡片完全一致：只取所有 API Key 今日消费之和，不再叠加本机实时增量
+            today = spent;
             if (todayCost != null && !firstRender && today < todayCost.shownValue()) {
                 today = todayCost.shownValue();          // 当天只增不减
             }
