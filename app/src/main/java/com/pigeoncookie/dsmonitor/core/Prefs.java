@@ -239,6 +239,23 @@ public final class Prefs {
                 .apply();
     }
 
+    /** “今天 + 全部 Key”的消费合计（用量页写入，余额页复用，跨进程保留）。 */
+    public static double todayCostAll(Context c) {
+        return Double.longBitsToDouble(sp(c).getLong("today_cost_all",
+                Double.doubleToLongBits(-1d)));
+    }
+
+    public static String todayCostDay(Context c) {
+        return sp(c).getString("today_cost_day", "");
+    }
+
+    public static void setTodayCostAll(Context c, double v, String isoDay) {
+        sp(c).edit()
+                .putLong("today_cost_all", Double.doubleToLongBits(v))
+                .putString("today_cost_day", isoDay == null ? "" : isoDay)
+                .apply();
+    }
+
     /** 今日零点时的累计消费，用来把“今日”从累计里减出来。 */
     public static double cumulativeBase(Context c) {
         return Double.longBitsToDouble(sp(c).getLong("cumulative_base_v2",

@@ -266,8 +266,15 @@ public class DashboardPage extends Page {
     /** 今日花费单独一行（仿照“总余额”的版式），显示在累计消费金额下方。 */
     /** 今天已经花掉多少：优先用量页那份数据（与卡片同源），其次本次刷新拉到的合计。 */
     private double daySpentSoFar() {
-        // 只用用量页那份数据：它就是“所有 API Key 今日消费之和”，与卡片完全同一个数
-        return UsageRepo.data != null ? UsageRepo.data.sumAll().cost : -1;
+        // 用量页算过“今天 + 全部”的合计：优先内存，其次持久化（退出再进也还在）
+        String iso = DeepSeekClient.isoToday();
+        if (UsageRepo.todayCostAll >= 0 && iso.equals(UsageRepo.todayCostDay)) {
+            return UsageRepo.todayCostAll;
+        }
+        if (iso.equals(Prefs.todayCostDay(host)) && Prefs.todayCostAll(host) >= 0) {
+            return Prefs.todayCostAll(host);
+        }
+        return -1;
     }
 
     private void appendTodayCost(Balance b) {

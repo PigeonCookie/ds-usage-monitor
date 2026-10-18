@@ -948,6 +948,7 @@ public class UsagePage extends Page {
         if (range == RANGE_TODAY && selected.isEmpty()) {
             UsageRepo.todayCostAll = stat.cost;
             UsageRepo.todayCostDay = viewDayIso == null ? "" : viewDayIso;
+            Prefs.setTodayCostAll(host, stat.cost, UsageRepo.todayCostDay);
         }
 
         statCost.setText(Fmt.money(stat.cost));
