@@ -28,6 +28,8 @@ public class DashboardPage extends Page {
     private final TextView balanceMeta;
     private final TextView cumulativeMeta;
     private final com.pigeoncookie.dsmonitor.MoneyText todayCost;
+    /** 手动刷新时置位：本次必须重新向平台对账，不受 5 分钟缓存限制。 */
+    private boolean forceReconcile;
     /** 刚才那次平台导出拿到的“今日全部 Key 合计”，-1 表示本次没取到。 */
     private double freshTodayCost = -1;
     /** 今日花费只增不减：记住已显示的日期，跨天才允许回落。 */
@@ -96,6 +98,7 @@ public class DashboardPage extends Page {
 
     @Override
     public void refresh() {
+        forceReconcile = true;                 // 每次刷新都要和平台对一次账
         final String apiKey = Prefs.apiKey(host);
         final String token = Prefs.userToken(host);
         if (apiKey.isEmpty()) {
@@ -167,9 +170,11 @@ public class DashboardPage extends Page {
             return;
         }
         final long now = System.currentTimeMillis();
-        if (Prefs.cumulative(host) >= 0 && now - Prefs.cumulativeAt(host) < 5L * 60L * 1000L) {
+        if (!forceReconcile && Prefs.cumulative(host) >= 0
+                && now - Prefs.cumulativeAt(host) < 5L * 60L * 1000L) {
             return;
         }
+        forceReconcile = false;
         Bg.run(new Runnable() {
             @Override
             public void run() {
