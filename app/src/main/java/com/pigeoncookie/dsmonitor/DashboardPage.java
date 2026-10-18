@@ -276,10 +276,8 @@ public class DashboardPage extends Page {
         double today;
         if (spent >= 0) {
             // 与用量页卡片完全一致：只取所有 API Key 今日消费之和，不再叠加本机实时增量
+            // 完全以“今天 + 全部 Key”的合计为准，不再钳到历史显示值（否则会残留旧版本的 +0.1）
             today = spent;
-            if (todayCost != null && !firstRender && today < todayCost.shownValue()) {
-                today = todayCost.shownValue();          // 当天只增不减
-            }
         } else {
             // 还没有用量数据（没打开过用量页）：退回“累计 − 基线”的近似算法
             String iso = DeepSeekClient.isoToday();
