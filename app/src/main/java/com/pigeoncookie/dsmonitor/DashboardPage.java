@@ -51,6 +51,10 @@ public class DashboardPage extends Page {
         cardBalance = root.findViewById(R.id.card_balance);
         // 累计消费上涨代表花钱，闪暖橙色
         moneyCumulative.setWarnOnRise(true);
+        // 今日花费与累计消费同义：上涨即“又花钱了”，一起闪橙色
+        if (todayCost != null) {
+            todayCost.setWarnOnRise(true);
+        }
 
         root.findViewById(R.id.btn_topup).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -227,8 +231,9 @@ public class DashboardPage extends Page {
         }
         balanceMeta.setText(meta.toString());
 
-        applyCumulative();
+        // 先算今日再折叠“本机实时增量”，两个数字才会同步跳动
         appendTodayCost(b);
+        applyCumulative();
         updateAlertBadge();
         maybeAlert(b.total);
     }
@@ -248,8 +253,11 @@ public class DashboardPage extends Page {
         } catch (Throwable ignored) {
             today = 0;
         }
+        // 与累计消费卡片同源：平台当日合计 + 尚未反映到平台的本机实时增量
+        double realtime = Math.max(0, Prefs.cumulativeDelta(host));
+        today = Math.max(0, today) + realtime;
         if (todayCost != null) {
-            todayCost.setAmount(Math.max(0, today), !firstRender);
+            todayCost.setAmount(today, !firstRender);
         }
         TextView todayCurrency = root.findViewById(R.id.today_currency);
         if (todayCurrency != null) {
