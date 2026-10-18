@@ -239,6 +239,23 @@ public final class Prefs {
                 .apply();
     }
 
+    /** 今日零点时的累计消费，用来把“今日”从累计里减出来。 */
+    public static double cumulativeBase(Context c) {
+        return Double.longBitsToDouble(sp(c).getLong("cumulative_base",
+                Double.doubleToLongBits(-1d)));
+    }
+
+    public static String cumulativeBaseDay(Context c) {
+        return sp(c).getString("cumulative_base_day", "");
+    }
+
+    public static void setCumulativeBase(Context c, double v, String isoDay) {
+        sp(c).edit()
+                .putLong("cumulative_base", Double.doubleToLongBits(v))
+                .putString("cumulative_base_day", isoDay == null ? "" : isoDay)
+                .apply();
+    }
+
     /** Balance drops observed locally since the last platform cumulative fetch. */
     public static double cumulativeDelta(Context c) {
         return Double.longBitsToDouble(sp(c).getLong("cumulative_delta", Double.doubleToLongBits(0d)));

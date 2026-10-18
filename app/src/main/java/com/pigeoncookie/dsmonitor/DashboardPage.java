@@ -265,50 +265,15 @@ public class DashboardPage extends Page {
 
     /** 今日花费单独一行（仿照“总余额”的版式），显示在累计消费金额下方。 */
     private void appendTodayCost(Balance b) {
-        double today = 0;
         String iso = DeepSeekClient.isoToday();
-        // 最可靠：直接用用量页那份数据对象跑同一句 sumAll()（就是卡片上那个数）
-        if (UsageRepo.data != null) {
-            today = UsageRepo.data.sumAll().cost;
-        } else if (UsageRepo.todayCostAll >= 0 && iso.equals(UsageRepo.todayCostDay)) {
-            // 用量页算过：直接复用那个数，两处一定一致
-            today = UsageRepo.todayCostAll;
-        } else if (freshTodayCost >= 0) {
-            // 本次刷新刚拉到的“今日全部 Key 合计”，与用量页的卡片同源
-            today = freshTodayCost;
+        double shown = moneyCumulative == null ? 0 : moneyCumulative.shownValue();
+        double base = Prefs.cumulativeBase(host);
+        if (!iso.equals(Prefs.cumulativeBaseDay(host)) || base < 0) {
+            // 今天第一次渲染：用当前累计做基线（后续只增，保证今日不会跳来跳去）
+            base = Math.max(0, shown);
+            Prefs.setCumulativeBase(host, base, iso);
         }
-        // 与图表同源：今日所有 API Key 的平台逐时合计（不是当前筛选，也不是缓存快照）
-        try {
-            java.util.LinkedHashMap<Integer, com.pigeoncookie.dsmonitor.data.HourlyCache.Hour> hours =
-                    com.pigeoncookie.dsmonitor.data.HourlyCache.load(host, iso);
-            for (com.pigeoncookie.dsmonitor.data.HourlyCache.Hour hour : hours.values()) {
-                today += hour.cost;
-            }
-        } catch (Throwable ignored) {
-            today = 0;
-        }
-        if (today <= 0) {
-            try {
-                UsageData data = UsageRepo.data;
-                if (data != null && data.days != null) {
-                    UsageData.Day d = data.days.get(iso);
-                    if (d != null) {
-                        today = d.total.cost;
-                    }
-                }
-            } catch (Throwable ignored) {
-                today = 0;
-            }
-        }
-        // 与累计消费卡片同源：平台当日合计 + 尚未反映到平台的本机实时增量
-        double realtime = Math.max(0, Prefs.cumulativeDelta(host));
-        today = Math.max(0, today) + realtime;
-        String isoDay = DeepSeekClient.isoToday();
-        if (!isoDay.equals(todayFloorDay)) {
-            todayFloorDay = isoDay;                 // 跨天：允许从 0 重新开始
-        } else if (!firstRender && todayCost != null && today < todayCost.shownValue()) {
-            today = todayCost.shownValue();         // 同一天内只增不减（避免闪绿并回落）
-        }
+        double today = Math.max(0, shown - base);
         if (todayCost != null) {
             todayCost.setAmount(today, !firstRender);
         }
