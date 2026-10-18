@@ -28,6 +28,8 @@ public class DashboardPage extends Page {
     private final TextView balanceMeta;
     private final TextView cumulativeMeta;
     private final com.pigeoncookie.dsmonitor.MoneyText todayCost;
+    /** 今日花费只增不减：记住已显示的日期，跨天才允许回落。 */
+    private String todayFloorDay = "";
     private final TextView sourceLine;
     private final TextView updatedLine;
     private final TextView sampleLine;
@@ -263,6 +265,12 @@ public class DashboardPage extends Page {
         // 与累计消费卡片同源：平台当日合计 + 尚未反映到平台的本机实时增量
         double realtime = Math.max(0, Prefs.cumulativeDelta(host));
         today = Math.max(0, today) + realtime;
+        String isoDay = DeepSeekClient.isoToday();
+        if (!isoDay.equals(todayFloorDay)) {
+            todayFloorDay = isoDay;                 // 跨天：允许从 0 重新开始
+        } else if (!firstRender && todayCost != null && today < todayCost.shownValue()) {
+            today = todayCost.shownValue();         // 同一天内只增不减（避免闪绿并回落）
+        }
         if (todayCost != null) {
             todayCost.setAmount(today, !firstRender);
         }
