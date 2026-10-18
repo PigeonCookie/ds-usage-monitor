@@ -196,8 +196,15 @@ public class DashboardPage extends Page {
         moneyGranted.setAmount(b.granted, !firstRender);
         // 赠送余额为 0 时整张卡片不显示
         android.view.View grantedCard = root.findViewById(R.id.card_granted);
+        boolean hasGift = b.granted > 0.0001d;
         if (grantedCard != null) {
-            grantedCard.setVisibility(b.granted > 0.0001d
+            grantedCard.setVisibility(hasGift
+                    ? android.view.View.VISIBLE : android.view.View.GONE);
+        }
+        // 赠送余额为 0 时，总余额 == 充值余额，这一行没有信息量：直接隐藏并让卡片收缩
+        android.view.View totalRow = root.findViewById(R.id.total_all_row);
+        if (totalRow != null) {
+            totalRow.setVisibility(hasGift
                     ? android.view.View.VISIBLE : android.view.View.GONE);
         }
         firstRender = false;

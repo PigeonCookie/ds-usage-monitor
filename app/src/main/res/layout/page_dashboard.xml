@@ -137,6 +137,7 @@ android:id="@+id/info_balance"
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/total_all_row"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
