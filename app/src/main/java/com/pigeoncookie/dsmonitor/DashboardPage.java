@@ -403,6 +403,16 @@ public class DashboardPage extends Page {
         badgeAlert.setTextColor(Ui.color(host, on ? R.color.ds_badge_fg : R.color.ds_badge_off_fg));
     }
 
+    /** 构建号（不显示在版本号里，只在诊断行尾部标一下，便于确认装的是哪一版）。 */
+    private String versionCode() {
+        try {
+            return String.valueOf(host.getPackageManager()
+                    .getPackageInfo(host.getPackageName(), 0).versionCode);
+        } catch (Throwable t) {
+            return "?";
+        }
+    }
+
     private void updateStaticInfo() {
         String token = Prefs.userToken(host);
         sourceLine.setText(token.isEmpty()
@@ -411,7 +421,7 @@ public class DashboardPage extends Page {
         long at = Prefs.lastBalanceAt(host);
         updatedLine.setText(at > 0 ? "最近刷新：" + Fmt.dateTime(at) : "尚未刷新");
         sampleLine.setText("本机采样：今日 " + SampleStore.today(host).size() + " 条 · 累计 "
-                + SampleStore.count(host) + " 条");
+                + SampleStore.count(host) + " 条 · 构建 " + versionCode());
         if (Prefs.offline(host)) {
             balanceMeta.setText("⚠ 离线：以下为 " + (at > 0 ? Fmt.dateTime(at) : "上次") + " 的数据");
         }
