@@ -223,14 +223,40 @@ android:id="@+id/info_balance"
                     android:textSize="15sp" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/today_cost"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="今日 ¥0.00"
-                android:textColor="@color/ds_text_3"
-                android:textSize="13sp" />
+                android:gravity="bottom"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="今日"
+                    android:textColor="@color/ds_text_3"
+                    android:textSize="12sp" />
+
+                <com.pigeoncookie.dsmonitor.MoneyText
+                    android:id="@+id/today_cost"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:text="¥--.--"
+                    android:textColor="@color/ds_text_2"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/today_currency"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginBottom="1dp"
+                    android:text="CNY"
+                    android:textColor="@color/ds_text_3"
+                    android:textSize="10sp" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/cumulative_meta"

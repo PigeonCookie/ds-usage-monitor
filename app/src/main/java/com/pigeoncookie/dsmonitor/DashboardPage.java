@@ -27,7 +27,7 @@ public class DashboardPage extends Page {
     private final TextView badgeAlert;
     private final TextView balanceMeta;
     private final TextView cumulativeMeta;
-    private final TextView todayCost;
+    private final com.pigeoncookie.dsmonitor.MoneyText todayCost;
     private final TextView sourceLine;
     private final TextView updatedLine;
     private final TextView sampleLine;
@@ -249,7 +249,11 @@ public class DashboardPage extends Page {
             today = 0;
         }
         if (todayCost != null) {
-            todayCost.setText("今日 ¥" + Fmt.money2(Math.max(0, today)) + " " + b.currency);
+            todayCost.setAmount(Math.max(0, today), !firstRender);
+        }
+        TextView todayCurrency = root.findViewById(R.id.today_currency);
+        if (todayCurrency != null) {
+            todayCurrency.setText(b.currency);
         }
     }
 
