@@ -188,7 +188,8 @@ public class ProfilePage extends Page {
         new android.app.AlertDialog.Builder(host)
                 .setTitle("清理缓存")
                 .setMessage("将清除：逐时缓存、按天缓存、本机采样（最多 7 天）。"
-                        + "API Key、User Token、昵称、外观与预警设置都会保留。")
+                        + "API Key、User Token、昵称、外观与预警设置都会保留。\n\n"
+                        + "如果发现数据或柱状图不正确，可以用清理缓存来解决。")
                 .setPositiveButton("清理", new android.content.DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(android.content.DialogInterface dialog, int which) {
