@@ -148,6 +148,15 @@ public class ProfilePage extends Page {
             swSampling.setVisibility(View.GONE);
         }
         SampleJobService.schedule(host);
+        android.view.View clearCache = root.findViewById(R.id.btn_clear_cache);
+        if (clearCache != null) {
+            clearCache.setOnClickListener(new android.view.View.OnClickListener() {
+                @Override
+                public void onClick(android.view.View v) {
+                    confirmClearCache();
+                }
+            });
+        }
         editThreshold.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -172,6 +181,39 @@ public class ProfilePage extends Page {
     @Override
     public void refresh() {
         loadValues();
+    }
+
+    /** 清理缓存：逐时 / 按天 / 本机采样全部删掉，密钥与设置保留。 */
+    private void confirmClearCache() {
+        new android.app.AlertDialog.Builder(host)
+                .setTitle("清理缓存")
+                .setMessage("将清除：逐时缓存、按天缓存、本机采样（最多 7 天）。"
+                        + "API Key、User Token、昵称、外观与预警设置都会保留。")
+                .setPositiveButton("清理", new android.content.DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(android.content.DialogInterface dialog, int which) {
+                        clearCaches();
+                    }
+                })
+                .setNegativeButton("取消", null)
+                .show();
+    }
+
+    private void clearCaches() {
+        java.io.File dir = host.getFilesDir();
+        java.io.File[] files = dir == null ? null : dir.listFiles();
+        if (files != null) {
+            for (java.io.File f : files) {
+                String name = f.getName();
+                if (name.startsWith("hourly") || name.startsWith("local-days")
+                        || name.startsWith("samples")) {
+                    //noinspection ResultOfMethodCallIgnored
+                    f.delete();
+                }
+            }
+        }
+        com.pigeoncookie.dsmonitor.core.UsageRepo.clear();
+        host.toast("缓存已清理");
     }
 
     private void loadValues() {
