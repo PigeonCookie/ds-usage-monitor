@@ -74,7 +74,12 @@ public class MainActivity extends Activity implements PageHost {
             public void onClick(View v) {
                 long now = System.currentTimeMillis();
                 if (now - lastReloadAt < 1200L) {
-                    return;                       // 1.2 秒内的重复点击直接忽略
+                    toast("刷新中，请稍候");
+                    return;
+                }
+                if (com.pigeoncookie.dsmonitor.data.TodayBackfill.isBusy()) {
+                    toast("正在补齐逐时数据，请稍候");
+                    return;
                 }
                 lastReloadAt = now;
                 // 点任意一页的重载：两页的数据都刷新。

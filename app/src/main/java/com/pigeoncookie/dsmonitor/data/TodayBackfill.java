@@ -39,6 +39,11 @@ public final class TodayBackfill {
     }
 
     /** True while some finished hour of today is missing from the platform cache. */
+    /** 正在回填时返回 true（用于给用户一个“稍候”的反馈）。 */
+    public static boolean isBusy() {
+        return FILLING;
+    }
+
     public static boolean needed(Context c) {
         if (HourlyCache.disabled(c)) {
             return false;
