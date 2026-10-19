@@ -4,9 +4,9 @@
 [![build](https://github.com/PigeonCookie/ds-usage-monitor/actions/workflows/build.yml/badge.svg)](https://github.com/PigeonCookie/ds-usage-monitor/actions/workflows/build.yml)
 -->
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![size](https://img.shields.io/badge/APK-384%20KB-brightgreen)
+![size](https://img.shields.io/badge/APK-388%20KB-brightgreen)
 
-一个**轻量**的安卓用量监测 App：APK 约 **384 KB**，纯 Android framework 实现，**没有 AndroidX、没有 Gradle、没有任何第三方依赖**。
+一个**轻量**的安卓用量监测 App：APK 约 **388 KB**，纯 Android framework 实现，**没有 AndroidX、没有 Gradle、没有任何第三方依赖**。
 界面参照 DeepSeek 开放平台的暗色风格，底部三个栏目：**余额 / 用量 / 我的**。所有密钥只存在本机，请求只发往 `api.deepseek.com` 与 `platform.deepseek.com`。
 
 > **声明**：本项目是 **DeepSeek vibe coding** 的产物 —— 代码、界面与文档由 DeepSeek 模型生成，作者负责审阅、测试与发布；构建在本地用标准 Android 工具链完成（`aapt2` / `javac` / `d8` / `zipalign` / `apksigner`），**不是 DeepSeek 官方编译或发布的软件**，与 DeepSeek 官方无隶属关系。
