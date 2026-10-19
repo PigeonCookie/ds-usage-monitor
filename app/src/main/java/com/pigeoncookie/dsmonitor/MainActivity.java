@@ -125,11 +125,8 @@ public class MainActivity extends Activity implements PageHost {
         }
         // the reload button lives on the two data pages only
         btnReload.setVisibility(index == 2 ? View.INVISIBLE : View.VISIBLE);
+        // 只展示：数据在“点刷新”时已经两页同步过，切页不再额外请求
         pages[index].onShown();
-        // 切到数据页时顺手刷新一次：保证“上一页刚刷完，切过来就是新的”
-        if (index != 2) {
-            pages[index].refresh();
-        }
     }
 
     @Override

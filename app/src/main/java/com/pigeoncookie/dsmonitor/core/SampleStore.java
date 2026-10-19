@@ -42,7 +42,7 @@ public final class SampleStore {
 
     private static final String FILE_NAME = "samples.jsonl";
     private static final long KEEP_MS = 15L * 24 * 3600 * 1000;
-    private static final int MAX_LINES = 1200;
+    private static final int MAX_LINES = 2100;
     /** Samples older than this are dropped: the cumulative figure stays within a week. */
     private static final long MAX_AGE_MS = 7L * 24L * 60L * 60L * 1000L;
 
