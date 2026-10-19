@@ -28,6 +28,8 @@ import java.util.Map;
 public final class TodayBackfill {
 
     private static final int MAX_PER_RUN = 24;
+    /** 同一时间只允许一个回填在跑，避免连点刷新时两次 fill 并发写同一份缓存。 */
+    private static volatile boolean FILLING;
 
     public interface Progress {
         void onProgress(int done, int total);
@@ -67,6 +69,18 @@ public final class TodayBackfill {
 
     /** Blocking; fills today up to the hour that just ended. */
     public static void run(Context c, String token, Progress progress) {
+        if (FILLING) {
+            return;                       // 上一次回填还没结束，忽略这次
+        }
+        FILLING = true;
+        try {
+            runLocked(c, token, progress);
+        } finally {
+            FILLING = false;
+        }
+    }
+
+    private static void runLocked(Context c, String token, Progress progress) {
         fill(c, token, localDate(), Calendar.getInstance().get(Calendar.HOUR_OF_DAY) - 1, progress);
     }
 

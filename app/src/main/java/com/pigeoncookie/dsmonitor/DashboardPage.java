@@ -313,7 +313,13 @@ public class DashboardPage extends Page {
             today = Math.max(0, shown - base);
         }
         if (todayCost != null) {
-            todayCost.setAmount(today, !firstRender);
+            boolean haveData = spent >= 0 || today > 0.0001d;
+            android.view.View row = todayCost.getParent() instanceof android.view.View
+                    ? (android.view.View) todayCost.getParent() : todayCost;
+            row.setVisibility(haveData ? android.view.View.VISIBLE : android.view.View.GONE);
+            if (haveData) {
+                todayCost.setAmount(today, !firstRender);
+            }
         }
         TextView todayCurrency = root.findViewById(R.id.today_currency);
         if (todayCurrency != null) {
