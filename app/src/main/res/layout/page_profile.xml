@@ -195,19 +195,6 @@
                     android:textColor="@color/ds_pill_fg"
                     android:textSize="13sp" />
 
-                <TextView
-                    android:id="@+id/btn_clear_cache"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:background="@drawable/bg_chip"
-                    android:paddingStart="18dp"
-                    android:paddingTop="9dp"
-                    android:paddingEnd="18dp"
-                    android:paddingBottom="9dp"
-                    android:text="清理缓存"
-                    android:textColor="@color/ds_text_2"
-                    android:textSize="13sp" />
 
                 <TextView
                     android:id="@+id/btn_test"
@@ -220,6 +207,19 @@
                     android:paddingEnd="18dp"
                     android:paddingBottom="9dp"
                     android:text="@string/test_connection"
+                    android:textColor="@color/ds_text_2"
+                    android:textSize="13sp" />
+                <TextView
+                    android:id="@+id/btn_clear_cache"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/bg_chip"
+                    android:paddingStart="18dp"
+                    android:paddingTop="9dp"
+                    android:paddingEnd="18dp"
+                    android:paddingBottom="9dp"
+                    android:text="清理缓存"
                     android:textColor="@color/ds_text_2"
                     android:textSize="13sp" />
             </LinearLayout>
