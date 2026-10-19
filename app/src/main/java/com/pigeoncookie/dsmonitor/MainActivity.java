@@ -30,6 +30,8 @@ public class MainActivity extends Activity implements PageHost {
     private int current = 0;
     private int activeLoads = 0;
     private ImageButton btnReload;
+    /** 上一次点刷新的时间，用来防抖（连点不会叠出两次请求）。 */
+    private long lastReloadAt;
     private ObjectAnimator spinner;
 
     @Override
@@ -70,6 +72,11 @@ public class MainActivity extends Activity implements PageHost {
         btnReload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                long now = System.currentTimeMillis();
+                if (now - lastReloadAt < 1200L) {
+                    return;                       // 1.2 秒内的重复点击直接忽略
+                }
+                lastReloadAt = now;
                 // 点任意一页的重载：两页的数据都刷新。
                 // 不可见的那一页也会把新数据写进自己的 View，切过去立刻就是新的（不再二次请求）。
                 for (int i = 0; i < pages.length; i++) {
