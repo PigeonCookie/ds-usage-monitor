@@ -147,8 +147,12 @@ public class DashboardPage extends Page {
                             host.endLoad();
                             if (todayCost >= 0) {
                                 freshTodayCost = todayCost;
-                                // 余额页刚拉到的“今日全部 Key 合计”同样写进共享槽位
-                                Prefs.setTodayCostAll(host, todayCost, DeepSeekClient.isoToday());
+                                String isoDay = DeepSeekClient.isoToday();
+                                // 余额页刚拉到的“今日全部 Key 合计”同时写进内存槽位与持久化槽位，
+                                // 这样本次渲染直接用新值，不需要再点一次刷新（顺序问题就在这里）
+                                UsageRepo.todayCostAll = todayCost;
+                                UsageRepo.todayCostDay = isoDay;
+                                Prefs.setTodayCostAll(host, todayCost, isoDay);
                             }
                             if (result != null) {
                                 applyBalance(result);
