@@ -79,7 +79,7 @@ public class DashboardPage extends Page {
                 "调用 API 会消耗余额，如有疑问可以查看官方文档。",
                 "查看文档", "https://static.deepseek.com/faq/index.html?lang=zh#/category/4");
         bindInfo(root.findViewById(R.id.info_granted), "赠送余额",
-                "赠送余额有有效期，可在这里查看每一笔的有效期。",
+                "赠送余额存在有效期，可在这里查看每一笔的有效期。",
                 "查看有效期", "https://platform.deepseek.com/transactions?granted");
         badgeAlert.setOnClickListener(toProfile);
         sourceLine.setOnClickListener(toProfile);
@@ -229,7 +229,8 @@ public class DashboardPage extends Page {
         moneyGranted.setAmount(b.granted, !firstRender);
         // 赠送余额为 0 时整张卡片不显示
         android.view.View grantedCard = root.findViewById(R.id.card_granted);
-        boolean hasGift = b.granted > 0.0001d;
+        // 赠送余额不足一分钱就当作为 0：整张卡与总余额行完全隐藏
+        boolean hasGift = b.granted >= 0.005d;
         if (grantedCard != null) {
             grantedCard.setVisibility(hasGift
                     ? android.view.View.VISIBLE : android.view.View.GONE);
