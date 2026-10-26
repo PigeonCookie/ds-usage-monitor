@@ -269,6 +269,7 @@ android:id="@+id/info_balance"
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/card_granted"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
@@ -300,7 +301,7 @@ android:id="@+id/info_balance"
             </LinearLayout>
 
             <LinearLayout
-            android:id="@+id/card_granted"
+                android:id="@+id/row_granted_amount"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
