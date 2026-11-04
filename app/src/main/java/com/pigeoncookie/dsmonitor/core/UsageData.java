@@ -362,18 +362,20 @@ public final class UsageData {
             agg[0] += amount;
             agg[1] += num(row.get("price")) * amount;
         }
-        // The platform names its token kinds explicitly; trust those names whenever they are all
-        // recognised and fall back to the price ranking only for unknown vocabularies.
-        boolean allNamed = !totals.isEmpty();
+        // The platform names its token kinds explicitly; trust those names. The price ranking is
+        // only a fallback for vocabularies whose names the app does not know at all — a single
+        // extra type (function_call) must not reshuffle the recognised ones, or output lands in
+        // cache-miss and the chart stops adding up to the card.
+        LinkedHashMap<String, Integer> kinds = new LinkedHashMap<>();
         for (String type : totals.keySet()) {
             int kind = classify(type);
-            if (kind != TOKEN_HIT && kind != TOKEN_MISS && kind != TOKEN_OUT) {
-                allNamed = false;
-                break;
+            if (kind == TOKEN_HIT || kind == TOKEN_MISS || kind == TOKEN_OUT) {
+                kinds.put(type, kind);
             }
         }
-        LinkedHashMap<String, Integer> kinds = allNamed
-                ? new LinkedHashMap<String, Integer>() : kindsFromPrices(totals);
+        if (kinds.isEmpty()) {
+            kinds = kindsFromPrices(totals);
+        }
 
         for (Map<String, String> row : rows) {
             String date = normalizeDate(row.get("utc_date"));
