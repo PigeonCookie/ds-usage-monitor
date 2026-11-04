@@ -21,6 +21,7 @@ public final class CoreTest {
         testMonthEndpoints();
         testExportTokensAndKeys();
         testPriceBasedTokenKinds();
+        testFunctionCallKeepsNamedKinds();
         testHourlyCacheRoundTrip();
         testHourlyApproxFlag();
         testCsvParsing();
@@ -219,6 +220,22 @@ public final class CoreTest {
         eq(500L, single.sumAll().outTokens, "single type keeps its name based kind");
     }
 
+
+    /** Real export vocabulary: an extra call-counter row must not reshuffle the named token kinds. */
+    private static void testFunctionCallKeepsNamedKinds() {
+        String csv = "api_key_name,type,amount,price,utc_date,model\n"
+                + "cookie,input_cache_hit_tokens,30093952,0.0000002,20260308,deepseek-chat\n"
+                + "cookie,input_cache_miss_tokens,714500,0.000002,20260308,deepseek-chat\n"
+                + "cookie,output_tokens,272102,0.000003,20260308,deepseek-chat\n"
+                + "cookie,function_call,2,0.5,20260308,deepseek-chat\n";
+        UsageData data = new UsageData();
+        data.addExportCsv(csv);
+        UsageData.Slice total = data.sumAll();
+        eq(30093952L, total.hitTokens, "named cache-hit survives an extra type");
+        eq(714500L, total.missTokens, "named cache-miss survives an extra type");
+        eq(272102L, total.outTokens, "named output survives an extra type");
+        eq(31080556L, total.tokens, "token total unchanged");
+    }
 
     private static void testHourlyCacheRoundTrip() {
         java.util.LinkedHashMap<Integer, com.pigeoncookie.dsmonitor.data.HourlyCache.Hour> map =
